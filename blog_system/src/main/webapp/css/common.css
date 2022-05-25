@@ -1,0 +1,106 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/*
+设置整体页面高度
+background-position: center center;
+background-size: cover;
+background-repeat: no-repeat;
+D:/前端/博客系统/img/back.jpg
+ */
+html,body{
+    height: 100%;
+}
+body{
+    background-image: url("../img/back.jpeg");
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+.nav{
+    height: 50px;
+    width: 100%;
+    background-color: rgba(51,51,51,0.4);
+    color: #fff;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+.nav .spacer{
+    width: 70%;
+ }
+/**
+头像样式
+ */
+.nav img{
+    width: 40px;
+    height: 40px;
+    margin-left: 30px;
+    margin-right: 10px;
+    border-radius: 50%;
+}
+
+/*.nav.title{*/
+/*    padding: 30px;*/
+/*}*/
+.nav a{
+    color: white;
+    padding: 0 10px;
+    text-decoration: none;
+}
+/*
+版心样式
+*/
+.edition{
+    width: 1000px;
+    height: calc(100% - 50px);
+
+    /* 水平居中 */
+    margin: 0 auto;
+
+    display: flex;
+    justify-content: space-between;
+}
+
+.edition .left{
+    width: 200px;
+    height: 40%;
+   background-color: rgba(225,225,225,0.8);
+}
+.card {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+
+    /* 通过这里的内边距, 就可以让狗头居中 */
+    /* 这里设置的 30px 意思是四个方向, 都是 30px */
+    padding: 30px;
+}
+.card img {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+}
+
+.card h3 {
+    text-align: center;
+    padding: 10px;
+}
+
+.card a {
+    /* a 默认是行内元素. 行内元素的很多边距不生效. 为了简单起见, 直接设为块级元素. */
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    color: #999;
+    padding: 10px;
+}
+.card .content {
+    display: flex;
+    justify-content: space-around;
+    padding: 5px;
+}
+
+

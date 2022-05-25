@@ -1,0 +1,20 @@
+.right{
+    width: 798px;
+    background-color: rgba(225,225,225,0.8);
+    text-align: center;
+    overflow: auto;
+}
+.right .blog{
+    padding-bottom: 50px;
+}
+.right .date{
+    color: green;
+    margin-top: 10px;
+}
+.right .desc{
+    margin-top: 10px;
+}
+.right a{
+    color: darkgoldenrod;
+    text-decoration: none;
+}

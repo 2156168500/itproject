@@ -1,0 +1,65 @@
+.blog_Logincontant{
+    width: 100%;
+    height: calc(100% - 50px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.login{
+    width: 400px;
+    height: 350px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+}
+
+.login h3{
+    text-align: center;
+    padding: 20px 0;
+}
+.row{
+    height: 50px;
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+.login .row span{
+    display: block;
+    width: 100px;
+    font-weight: 700;
+}
+#username, #password {
+    width: 200px;
+    height: 40px;
+    font-size: 22px;
+    line-height: 40px;
+    padding-left: 10px;
+    border-radius: 10px;
+    /* 去掉边框 */
+    border: none;
+    /* 去掉轮廓线 */
+    outline: none;
+}
+
+.row button {
+    width: 300px;
+    height: 50px;
+    border-radius: 10px;
+    color: white;
+    background-color: rgb(0, 128, 0);
+    border: none;
+    outline: none;
+
+    margin-top: 50px;
+}
+
+.row button:active {
+    background-color: #666;
+}
+
+
+
+

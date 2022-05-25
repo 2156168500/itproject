@@ -1,0 +1,12 @@
+.blog_contant{
+
+}
+
+.blog_contant p{
+    padding: 10px 0;
+    tab-index: 2em;
+
+}
+.right{
+    overflow: auto;
+}
