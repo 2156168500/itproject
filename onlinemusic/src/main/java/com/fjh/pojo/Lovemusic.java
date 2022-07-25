@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @Data
 public class Lovemusic {
 
-  private long id;
-  private long userId;
-  private long musicId;
+  private Integer id;
+  private Integer userId;
+  private Integer musicId;
 
 }

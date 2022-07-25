@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class Music {
 
-  private long id;
+  private Integer id;
   private String title;
   private String singer;
   private String time;
