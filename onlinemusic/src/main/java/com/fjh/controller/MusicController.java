@@ -7,6 +7,7 @@ import com.fjh.totals.Constant;
 import com.fjh.totals.ResponseBodyMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -76,6 +78,25 @@ public class MusicController {
             return  new ResponseBodyMessage<>(-1,"数据库上传失败",false);
         }
 
+    }
+    @RequestMapping("/get")
+    public ResponseEntity<byte[]> get(String path){
+        if(path == null || path.length() == 0){
+            return ResponseEntity.badRequest().build();
+        }
+        String fileName = path + ".mp3";
+        File file = new File(save_path + fileName);
+        byte[] ret = null;
+        try {
+            ret=  Files.readAllBytes(file.toPath());
+            if(ret == null){
+                return  ResponseEntity.badRequest().build();
+            }
+            return ResponseEntity.ok(ret);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
     }
 
 }
