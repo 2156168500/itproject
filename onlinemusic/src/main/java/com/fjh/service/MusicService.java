@@ -17,4 +17,10 @@ public class MusicService {
     public Music selectOne(String title,String singer){
         return musicMapper.selectOne(title,singer);
     }
+    public Music selectById(int id){
+        return musicMapper.selectById(id);
+    }
+    public int deleteOne(int id){
+        return musicMapper.deleteOne(id);
+    }
 }

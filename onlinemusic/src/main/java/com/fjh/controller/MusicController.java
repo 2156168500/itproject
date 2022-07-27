@@ -99,4 +99,33 @@ public class MusicController {
         }
     }
 
+    @RequestMapping("/delete")
+    public ResponseBodyMessage<Boolean> deleteMusicById(@RequestParam String id){
+        int deleteId = Integer.parseInt(id);
+        //1.查询是否有这个id的音乐
+        Music music = musicService.selectById(deleteId);
+        if(music == null){//没有这个音乐
+            return new ResponseBodyMessage<>(-1,"没有该音乐删除失败" ,false);
+        }
+        //如果找到了这个音乐
+        //1.在服务器中删除这个音乐
+       String title =  music.getTitle();
+       File file = new File(save_path + title + ".mp3");
+        System.out.println(file.getPath());
+         boolean flag = file.delete();
+         if(flag){
+             //在数据库中删除
+           int ret =  musicService.deleteOne(deleteId);
+           if(ret == 1){
+               return new ResponseBodyMessage<>(1,"删除成功",true);
+           }else {
+               return  new ResponseBodyMessage<>(-1,"删除失败",false);
+           }
+
+         }else {
+             return new ResponseBodyMessage<>(-1,"删除失败",false);
+         }
+
+    }
+
 }

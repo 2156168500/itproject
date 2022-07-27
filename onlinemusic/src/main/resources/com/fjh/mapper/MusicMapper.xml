@@ -9,4 +9,10 @@
 <select id="selectOne" resultType="music" >
     select * from  music where title = #{title} and singer = #{singer}
 </select>
+    <select id="selectById" resultType="music">
+        select  * from music where id = #{id}
+    </select>
+    <delete id="deleteOne">
+        delete  from  music where id = #{id}
+    </delete>
 </mapper>
