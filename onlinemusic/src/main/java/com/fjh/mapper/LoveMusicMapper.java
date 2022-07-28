@@ -33,4 +33,18 @@ public interface LoveMusicMapper {
      * @return
      */
     List<Music> findLoveMusicBykeyAndUID(String musicName, int userId);
+
+    /**
+     * 移除收藏的音乐
+     * @param userId
+     * @param musicId
+     * @return
+     */
+    boolean deleteLoveMusic(Integer userId,Integer musicId);
+    /**
+     * 当删除库中的音乐的时候，同步删除lovemusic中的数据
+     * @param musicId
+     * @return
+     */
+    int deleteLoveMusicById(int musicId);
 }

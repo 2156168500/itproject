@@ -26,6 +26,12 @@ public class LoveMusicService {
         }else{
             return loveMusicMapper.findLoveMusicBykeyAndUID(musicName,userId);
         }
+    }
 
+    public boolean deleteLoveMusic(Integer userId,Integer musicId){
+        return loveMusicMapper.deleteLoveMusic(userId,musicId);
+    }
+    public int deleteMusicById(Integer musicId){
+        return loveMusicMapper.deleteLoveMusicById(musicId);
     }
 }

@@ -2,6 +2,7 @@ package com.fjh.controller;
 
 import com.fjh.pojo.Music;
 import com.fjh.pojo.User;
+import com.fjh.service.LoveMusicService;
 import com.fjh.service.MusicService;
 import com.fjh.totals.Constant;
 import com.fjh.totals.ResponseBodyMessage;
@@ -26,6 +27,8 @@ import java.util.List;
 public class MusicController {
     @Autowired
     private MusicService musicService;
+    @Autowired
+    private LoveMusicService loveMusicService;
     @Value("${SAVE_PATH}")
     private String save_path ;
     @RequestMapping("/upload")
@@ -117,7 +120,8 @@ public class MusicController {
          if(flag){
              //在数据库中删除
            int ret =  musicService.deleteOne(deleteId);
-           if(ret == 1){
+           int ret2 = loveMusicService.deleteMusicById(deleteId);
+           if(ret == 1 && ret2 == 1){
                return new ResponseBodyMessage<>(1,"删除成功",true);
            }else {
                return  new ResponseBodyMessage<>(-1,"删除失败",false);
@@ -149,7 +153,8 @@ public class MusicController {
             if(flag){
                 //在数据库中删除
                 int ret =  musicService.deleteOne(deleteId);
-                if(ret != 1){
+                int ret2 = loveMusicService.deleteMusicById(deleteId);
+                if(ret != 1 || ret2 != 1){
                     return  new ResponseBodyMessage<>(-1,"删除失败",false);
                 }
             }else {

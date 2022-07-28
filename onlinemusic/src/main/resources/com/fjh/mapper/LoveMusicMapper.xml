@@ -31,4 +31,10 @@ right join lovemusic lm
 on(m.id = lm.music_id)
 where userid = #{userId} and title = #{musicName}
 </select>
+<delete id="deleteLoveMusic">
+    delete  from  lovemusic where music_id = #{musicId} and user_id = #{userId}
+</delete>
+<delete id="deleteLoveMusicById">
+    delete  from  lovemusic where music_id = #{musicId}
+</delete>
 </mapper>

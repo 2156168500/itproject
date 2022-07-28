@@ -45,4 +45,19 @@ public class LoveMusicController {
        List<Music> musicList =  loveMusicService.findLoveMusic(musicName,user.getId());
        return new ResponseBodyMessage<>(1,"查询成功",musicList);
     }
+    @RequestMapping("/deletelovemusic")
+    public ResponseBodyMessage<Boolean> deleteLoveMusic(@RequestParam String musicId,HttpServletRequest request){
+        //1.判断用户是否登录
+        int loveMusicId =  Integer.parseInt(musicId);
+        HttpSession session = request.getSession(false);
+        if(session == null || session.getAttribute(Constant.USERINFO_SESSION_KEY) == null){
+            return new ResponseBodyMessage<>(-1,"没有登录",false);
+        }
+        User user = (User)session.getAttribute(Constant.USERINFO_SESSION_KEY);
+        boolean flag = loveMusicService.deleteLoveMusic(user.getId(),loveMusicId);
+        if(flag){
+            return new ResponseBodyMessage<>(1,"移除成功",true);
+        }
+        return new ResponseBodyMessage<>(-1,"移除失败",false);
+    }
 }
