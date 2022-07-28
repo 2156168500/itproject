@@ -10,4 +10,25 @@
 <insert id="insertLoveMusic" parameterType="lovemusic">
     insert  into  lovemusic values (null,#{userId},#{musicId})
 </insert>
+<resultMap id="BaseMapper" type="music">
+    <id column="id" property="id"></id>
+    <result column="title" property="title"></result>
+    <result column="singer" property="singer"></result>
+    <result column="time" property="time"></result>
+    <result column="url" property="url"></result>
+    <result column="userid" property="userid"></result>
+</resultMap>
+<select id="findLoveMusicByUserId" resultMap="BaseMapper">
+select * from music m
+right join lovemusic lm
+on(m.id = lm.music_id)
+where userid = #{userId}
+</select>
+
+<select id="findLoveMusicBykeyAndUID" resultMap="BaseMapper">
+select * from music m
+right join lovemusic lm
+on(m.id = lm.music_id)
+where userid = #{userId} and title = #{musicName}
+</select>
 </mapper>

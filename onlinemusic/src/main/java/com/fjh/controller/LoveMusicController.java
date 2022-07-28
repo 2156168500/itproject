@@ -1,5 +1,6 @@
 package com.fjh.controller;
 
+import com.fjh.pojo.Music;
 import com.fjh.pojo.User;
 import com.fjh.service.LoveMusicService;
 import com.fjh.totals.Constant;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.List;
 
 @RestController
 @RequestMapping("/lovemusic")
@@ -32,5 +34,15 @@ public class LoveMusicController {
         }else{
             return new ResponseBodyMessage<>(-1,"收藏失败您可能已经收藏过了",false);
         }
+    }
+    @RequestMapping("/findlovemusic")
+    public ResponseBodyMessage<List<Music>> findLoveMusic(@RequestParam(required = false) String musicName ,HttpServletRequest request){
+        HttpSession session = request.getSession();
+        if(session == null || session.getAttribute(Constant.USERINFO_SESSION_KEY) == null){
+            return new ResponseBodyMessage<>(-1,"没有登录",null);
+        }
+        User user = (User) session.getAttribute(Constant.USERINFO_SESSION_KEY);
+       List<Music> musicList =  loveMusicService.findLoveMusic(musicName,user.getId());
+       return new ResponseBodyMessage<>(1,"查询成功",musicList);
     }
 }

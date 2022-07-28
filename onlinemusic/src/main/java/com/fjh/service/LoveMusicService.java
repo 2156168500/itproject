@@ -6,6 +6,7 @@ import com.fjh.pojo.Music;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service
 public class LoveMusicService {
@@ -17,5 +18,14 @@ public class LoveMusicService {
             return false;
         }
         return loveMusicMapper.insertLoveMusic(new Lovemusic(null,userId,musicId));
+    }
+
+    public List<Music> findLoveMusic(String musicName,Integer userId){
+        if(musicName == null){
+            return loveMusicMapper.findLoveMusicByUserId(userId);
+        }else{
+            return loveMusicMapper.findLoveMusicBykeyAndUID(musicName,userId);
+        }
+
     }
 }
