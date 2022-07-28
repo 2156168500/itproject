@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service
 public class MusicService {
@@ -22,5 +23,12 @@ public class MusicService {
     }
     public int deleteOne(int id){
         return musicMapper.deleteOne(id);
+    }
+    public List<Music>findMusic(String name){
+        if(name != null){
+            return musicMapper.findMusicByName(name);
+        }else {
+            return musicMapper.findMusic();
+        }
     }
 }

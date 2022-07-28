@@ -15,4 +15,10 @@
     <delete id="deleteOne">
         delete  from  music where id = #{id}
     </delete>
+    <select id="findMusicByName" resultType="music">
+        select * from music where title like concat("%" ,#{musicName},"%")
+    </select>
+    <select id="findMusic" resultType="music">
+        select * from music;
+    </select>
 </mapper>

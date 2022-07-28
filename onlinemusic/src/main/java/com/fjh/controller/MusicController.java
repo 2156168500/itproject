@@ -162,4 +162,12 @@ public class MusicController {
             return new ResponseBodyMessage<>(1,"批量删除失败",true);
         }
     }
+//required = false 可以不传参
+@RequestMapping("/findmusic")
+    public ResponseBodyMessage<List<Music>>findMusic(@RequestParam(required = false) String musicName){
+        List<Music> musicList = null;
+        System.out.println(musicName);
+       musicList =  musicService.findMusic(musicName);
+       return new ResponseBodyMessage<>(1,"查询成功",musicList);
+    }
 }

@@ -3,6 +3,8 @@ package com.fjh.mapper;
 import com.fjh.pojo.Music;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 @Mapper
 public interface MusicMapper {
     int insert(Music music);
@@ -21,4 +23,17 @@ public interface MusicMapper {
      * @return
      */
     int deleteOne(int id);
+
+    /**
+     * 根据音乐的名称,查找音乐
+     * @param musicName 音乐的名字
+     * @return
+     */
+    List<Music> findMusicByName(String musicName);
+
+    /**
+     * 查找所有音乐
+     * @return
+     */
+    List<Music> findMusic();
 }
