@@ -120,8 +120,8 @@ public class MusicController {
          if(flag){
              //在数据库中删除
            int ret =  musicService.deleteOne(deleteId);
-           int ret2 = loveMusicService.deleteMusicById(deleteId);
-           if(ret == 1 && ret2 == 1){
+           if(ret == 1){
+               loveMusicService.deleteMusicById(deleteId);
                return new ResponseBodyMessage<>(1,"删除成功",true);
            }else {
                return  new ResponseBodyMessage<>(-1,"删除失败",false);
@@ -153,9 +153,10 @@ public class MusicController {
             if(flag){
                 //在数据库中删除
                 int ret =  musicService.deleteOne(deleteId);
-                int ret2 = loveMusicService.deleteMusicById(deleteId);
-                if(ret != 1 || ret2 != 1){
+                if(ret != 1){
                     return  new ResponseBodyMessage<>(-1,"删除失败",false);
+                }else {
+                   loveMusicService.deleteMusicById(deleteId);
                 }
             }else {
                 return new ResponseBodyMessage<>(-1,"删除失败",false);
