@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<input type="text" id="message">
+<button id="sendButton" > </button>
+<script>
+    let  webSocket = new WebSocket("ws://127.0.0.1:8080/test");
+    webSocket.onopen = function () {
+        console.log("建立链接");
+    }
+    webSocket.onmessage = function (e) {
+        console.log("收到消息" + e.data);
+    }
+    webSocket.onerror = function () {
+        console.log("连接异常");
+    }
+    webSocket.onclose = function () {
+        console.log("连接关闭")
+    }
+    let input = document.querySelector("#message");
+    let button = document.querySelector("#sendButton");
+    button.onclick = function () {
+        console.log("发送消息 : " + input.value)
+        webSocket.send(input.value)
+    }
+</script>
+</body>
+</html>
