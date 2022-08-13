@@ -1,0 +1,21 @@
+body {
+    background-image: url('../image/background.jpeg');
+}
+.middle {
+    margin-top: 110px;
+    margin-bottom: 110px;
+    padding: 100px 50px 50px 50px;
+    background-color: #6b67ff;
+    border-radius: 15px;
+    box-shadow: 10px 10px 5px rgb(0,0,0,0.1);
+
+}
+.login {
+    margin-left: 20px;
+}
+.font2 {
+    font-size: 0.6em;
+}
+.btn {
+    border-radius: 28px;
+}

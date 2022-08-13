@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏大厅</title>
+    <link rel="stylesheet" type="text/css" href="css/comm.css">
+    <link rel="stylesheet" type="text/css" href="css/game_hall.css">
+</head>
+<body>
+    <div class="nave">网页版五子棋</div>
+    <div class="container">
+        <div>
+            <div id="screen">
+
+            </div>
+            <div id="match-button">开始匹配</div>
+
+        </div>
+    </div>
+</body>
+<script type="application/javascript" rel="script" src="js/jquery-3.1.1.min.js"></script>
+<script>
+    $.ajax({
+        type: "get",
+        url: "/user/userInfo",
+        success: function (object) {
+            let screen = document.querySelector("#screen");
+            screen.innerHTML = "用户名 : " + object.data.username +"&emsp;"+ "分数 : "
+                + object.data.score + "<br>" + "比赛场数 : " + object.data.totalCount + "&emsp;"
+            + "获胜场数 : " + object.data.winCount;
+
+        },
+        error : function (object) {
+            alert(object.data.message)
+        }
+    })
+    //进行前端的websocket的初始化
+    let websocket = new WebSocket("ws://127.0.0.1:8080/findMatch");
+    let matchButton = document.querySelector("#match-button");
+
+    websocket.onopen = function () {
+        console.log("链接成功")
+
+    }
+    websocket.onerror = function () {
+        console.log("连接异常")
+    }
+    websocket.onclose = function () {
+        console.log("连接断开")
+    }
+    websocket.onmessage = function (e) {
+        let object = JSON.parse(e.data);
+        if(!object.ok){
+            console.log(object.reason)
+            return;
+        }
+        if(object.message == 'startMatch'){
+            matchButton.innerHTML = '匹配中...(点击停止)'
+
+
+        }else if(object.message == 'stopMatch'){
+            matchButton.innerHTML = '开始匹配';
+
+        }else if(object.message == 'successMatch'){
+
+            location.assign("game-room.html")
+        }else if(object.message == 'repetition'){
+            alert(object.reason);
+            websocket.close();
+            location.assign("login.html")
+        }
+    }
+    //监听页面关闭事件
+    window.onbeforeunload = function () {
+        //手动关闭
+        websocket.close();
+    }
+
+    matchButton.onclick = function () {
+        //判定链接是否建立
+        if(websocket.readyState == websocket.OPEN){
+            if(matchButton.innerHTML == '开始匹配'){
+                websocket.send(JSON.stringify({
+                    message : "startMatch"
+                }))
+            }else {
+                websocket.send(JSON.stringify({
+                    message: "stopMatch"
+                }))
+
+            }
+        }else{
+           alert("您已断开链接,请重新登录")
+            location.assign("login.html")
+        }
+    }
+
+</script>
+</html>

@@ -3,7 +3,6 @@ package com.fjh.controller;
 import com.fjh.pojo.User;
 import com.fjh.service.UserService;
 import com.fjh.util.ResponseBodyMessage;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

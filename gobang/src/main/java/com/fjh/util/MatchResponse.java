@@ -4,11 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Data
-public class ResponseBodyMessage<V> {
-    private int status;
+public class MatchResponse {
+    private boolean ok;
+    private String reason;
     private String message;
-    private V data;
+
 }

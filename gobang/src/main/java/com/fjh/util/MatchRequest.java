@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ResponseBodyMessage<V> {
-    private int status;
+public class MatchRequest {
     private String message;
-    private V data;
+
 }
