@@ -37,9 +37,9 @@ public class MatchController extends TextWebSocketHandler {
                 return;
 
             }
-            onlineUserMessage.interGameHall(user.getUserId(),session);
+            onlineUserMessage.enterGameHall(user.getUserId(),session);
         }catch (NullPointerException e){
-            e.printStackTrace();
+          // e.printStackTrace();
             MatchResponse response = new MatchResponse();
             response.setOk(false);
             response.setReason("您还没有登录");
@@ -83,7 +83,7 @@ public class MatchController extends TextWebSocketHandler {
             WebSocketSession temp = onlineUserMessage.getFromGameHall(user.getUserId());
 
             if(temp == session){//多开情况的处理
-                onlineUserMessage.enterGameHall(user.getUserId());
+                onlineUserMessage.exitGameHall(user.getUserId());
                 matcher.removeMatcher(user);
             }
 
@@ -103,17 +103,13 @@ public class MatchController extends TextWebSocketHandler {
             User user = (User) session.getAttributes().get("userInfo");
             WebSocketSession temp = onlineUserMessage.getFromGameHall(user.getUserId());
             if(session == temp){
-                onlineUserMessage.enterGameHall(user.getUserId());
+                onlineUserMessage.exitGameHall(user.getUserId());
                 matcher.removeMatcher(user);
             }
 
         }catch (NullPointerException e){
-            e.printStackTrace();
-            MatchResponse response = new MatchResponse();
-            response.setOk(false);
-            response.setReason("您还没有登录");
-            response.setMessage("stopMatch");
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
+            System.out.println("链接断开 ,您还没有登录");
+
         }
     }
 }

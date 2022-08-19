@@ -13,6 +13,14 @@ public class UserService {
         return userMapper.insert(user);
     }
     public User selectByUsername(String username){
+
         return userMapper.selectByUsername(username);
+    }
+
+    public void userWin(int winUserId){
+        userMapper.userWin(winUserId);
+    }
+    public void userLose(int loseUserId){
+        userMapper.userLose(loseUserId);
     }
 }

@@ -60,7 +60,8 @@ public class UserController {
         if(userInfo == null){
             return new ResponseBodyMessage<User>(-1,"没有登录",null);
         }
-        return  new ResponseBodyMessage<>(1,"获取成功",userInfo);
+        User user = userService.selectByUsername(userInfo.getUsername());
+        return  new ResponseBodyMessage<>(1,"获取成功",user);
     }
 
 }

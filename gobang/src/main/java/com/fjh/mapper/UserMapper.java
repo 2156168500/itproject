@@ -9,4 +9,6 @@ public interface UserMapper {
     int insert(User user);
     //查询,用于登录
     User selectByUsername(String username);
+    void userWin(int winUserId);
+    void userLose(int loseUserId);
 }

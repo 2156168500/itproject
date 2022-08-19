@@ -27,6 +27,8 @@ public class Matcher {
     private Queue<User> veryHighQueue = new LinkedList<>();
     @Autowired
     private OnlineUserMessage onlineUserMessage ;
+    @Autowired
+    private RoomManger roomManger;
 
     public void pushMatcher(User user){
         int score = user.getScore();
@@ -121,7 +123,8 @@ public class Matcher {
                 return;
             }
             //下面是匹配成功之后的操作
-            //TODO 1.将两个玩家放在同一个游戏房间中
+            Room room = new Room();
+            roomManger.add(room,user1.getUserId(),user2.getUserId());
             //2.给玩家1返回数据
             MatchResponse response = new MatchResponse();
             response.setOk(true);

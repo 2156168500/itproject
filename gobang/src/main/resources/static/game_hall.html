@@ -65,11 +65,13 @@
 
         }else if(object.message == 'successMatch'){
 
-            location.assign("game-room.html")
+          //  location.assign("game_room.html")
+            location.replace("game_room.html")
         }else if(object.message == 'repetition'){
             alert(object.reason);
             websocket.close();
-            location.assign("login.html")
+         //   location.assign("login.html")
+            location.replace("login.html");
         }
     }
     //监听页面关闭事件
@@ -93,7 +95,8 @@
             }
         }else{
            alert("您已断开链接,请重新登录")
-            location.assign("login.html")
+            //location.assign("login.html")
+            location.replace("login.html")
         }
     }
 

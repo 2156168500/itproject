@@ -10,4 +10,12 @@
     <select id="selectByUsername" resultType="user" >
     select * from user where username = #{username}
 </select>
+<update id="userWin">
+    update user set total_count = total_count + 1,win_count = win_count + 1 ,score = score + 30
+    where userID = #{winUserId}
+</update>
+<update id="userLose">
+       update user set total_count = total_count + 1,score = score - 30
+    where userID = #{loseUserId}
+</update>
 </mapper>

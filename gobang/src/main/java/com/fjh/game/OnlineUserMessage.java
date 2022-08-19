@@ -7,14 +7,23 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class OnlineUserMessage {
     private ConcurrentHashMap<Integer, WebSocketSession> gameHall = new ConcurrentHashMap<>();
-    public void interGameHall(int userId,WebSocketSession session){
+    private ConcurrentHashMap<Integer ,WebSocketSession> gameRoom = new ConcurrentHashMap<>();
+    public void enterGameHall(int userId, WebSocketSession session){
         gameHall.put(userId,session);
-
     }
-    public void enterGameHall(int userId){
+    public void exitGameHall(int userId){
         gameHall.remove(userId);
     }
     public WebSocketSession getFromGameHall(int userId){
         return gameHall.get(userId);
+    }
+    public void enterGameRoom(int userId, WebSocketSession session){
+        gameRoom.put(userId,session);
+    }
+    public void exitGameRoom(int userId){
+        gameRoom.remove(userId);
+    }
+    public WebSocketSession getFromGameRoom(int userId){
+        return gameRoom.get(userId);
     }
 }
