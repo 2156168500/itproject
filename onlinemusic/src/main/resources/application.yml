@@ -18,6 +18,6 @@ logging:
 ## 最大上传单个文件大小：默认1M
 #spring.servlet.multipart.max-file-size : 1024MB
 #  # 最大上传多个文件大小 ：默认10M
-#spring.servlet.multipart.max-request-size: 1024MB
+#spring.servlet.multipart.max-request-size: 10240MB
 
-SAVE_PATH: D:/work/music/
+SAVE_PATH: D:\work\

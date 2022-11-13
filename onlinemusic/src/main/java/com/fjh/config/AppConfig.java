@@ -26,7 +26,9 @@ public class AppConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/css/**.css")
                 .excludePathPatterns("/fronts/**")
                 .excludePathPatterns("/player/**")
-                .excludePathPatterns("/login.html") ;//排除登录接口 .excludePathPatterns("/user/login");
+                .excludePathPatterns("/login.html") //排除登录接口
+                .excludePathPatterns("/user/login")
+                .excludePathPatterns("/user/register");
 
     }
 }
