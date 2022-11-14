@@ -172,7 +172,7 @@ public class GameController extends TextWebSocketHandler {
         if (webSocketSession == null) {
             // 这就意味着对手也掉线了!
             System.out.println("对手也已经掉线了, 无需通知!");
-            return;
+            //return;
         }
         // 4. 构造一个响应, 来通知对手, 你是获胜方
         GameResponse resp = new GameResponse();
