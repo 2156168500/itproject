@@ -13,7 +13,8 @@
 
     <!-- 开启注解扫描，使注解生效 -->
     <context:component-scan base-package="com.fjh.examonline.controller" ></context:component-scan>
-    <mvc:annotation-driven conversion-service="conversionService"></mvc:annotation-driven>
+
+    <mvc:annotation-driven></mvc:annotation-driven>
 
     <!-- 配置文件上传解析器 文件上传生效 -->
     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
@@ -63,7 +64,7 @@
         如果某次请求没有获得语言，就会存储对象获取
     -->
     <bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
-        <property name="defaultLocale" value="en_US" />
+        <property name="defaultLocale" value="zh_US" />
     </bean>
 
     <!--
@@ -76,27 +77,7 @@
         <bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
             <property name="paramName" value="lang" />
         </bean>
-
-<!--        <mvc:interceptor>-->
-<!--            <mvc:mapping path="/**"/>-->
-<!--            <mvc:exclude-mapping path="/" />-->
-<!--            <mvc:exclude-mapping path="/common/login.html" />-->
-<!--            <mvc:exclude-mapping path="/common/login" />-->
-<!--            <mvc:exclude-mapping path="/common/exit" />-->
-<!--            <mvc:exclude-mapping path="/common/timeout.html" />-->
-<!--            <mvc:exclude-mapping path="/js/**" />-->
-<!--            <mvc:exclude-mapping path="/css/**" />-->
-<!--            <mvc:exclude-mapping path="/images/**" />-->
-<!--            <bean id="loginInterceptor" class="com.fjh.examonline.common.interceptors.LoginInterceptor"></bean>-->
-<!--        </mvc:interceptor>-->
     </mvc:interceptors>
 
-<!--    <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">-->
-<!--        <property name="converters">-->
-<!--            <set>-->
-<!--                <ref bean="dateFormatter"></ref>-->
-<!--            </set>-->
-<!--        </property>-->
-<!--    </bean>-->
 
 </beans>

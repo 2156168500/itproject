@@ -23,4 +23,9 @@ public class TeacherServiceImpl implements TeacherService {
         teacher.setPass(pass);
         teacherMapper.insert(teacher);
     }
+
+    @Override
+    public Teacher findTeacherByName(String tname) {
+        return teacherMapper.findTeacherByName(tname);
+    }
 }

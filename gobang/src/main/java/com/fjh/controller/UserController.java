@@ -46,7 +46,7 @@ public class UserController {
         }catch (DuplicateKeyException e){
             return new ResponseBodyMessage<>(-1,"用户已经存在",null);
         }
-
+        
         return new ResponseBodyMessage<>(1,"注册成功",newUser);
     }
 
