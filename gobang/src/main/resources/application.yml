@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    username: root
+    password: ""
+    url: jdbc:mysql://127.0.0.1:3306/gobang?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+mybatis:
+  mapper-locations: classpath:mybatis/*.xml
+  type-aliases-package: com.fjh.pojo
+  configuration:
+    map-underscore-to-camel-case: true
+server:
+  port: 8081
+logging:
+  level:
+    com.fjh.mapper: DEBUG

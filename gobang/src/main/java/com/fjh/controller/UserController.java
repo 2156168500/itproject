@@ -1,67 +1,65 @@
 package com.fjh.controller;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import com.fjh.pojo.User;
+import com.fjh.mapper.UserMapper;
 import com.fjh.service.UserService;
-import com.fjh.util.ResponseBodyMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/user")
 public class UserController {
-    @Autowired
+
+    @Resource
     private UserService userService;
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-    @RequestMapping("/login")
-    public ResponseBodyMessage<User> login(@RequestParam String username, @RequestParam String password, HttpServletRequest request){
-        User login = userService.selectByUsername(username);
-        if(login == null){
-            return  new ResponseBodyMessage<User>(-1,"用户不存在",login);
+
+    @PostMapping("/login")
+    @ResponseBody
+    public Object login(String username, String password, HttpServletRequest req) {
+        // 关键操作, 就是根据 username 去数据库中进行查询.
+        // 如果能找到匹配的用户, 并且密码也一致, 就认为登录成功
+        User user = userService.selectByName(username);
+        System.out.println("[login] username=" + username);
+        if (user == null || !user.getPassword().equals(DigestUtil.md5Hex(password))) {
+            // 登录失败
+            System.out.println("登录失败!");
+            return new User();
         }
-        boolean flag = bCryptPasswordEncoder.matches(password,login.getPassword());
-        if(flag){//登录成功
-            HttpSession session = request.getSession(true);
-            session.setAttribute("userInfo",login);
-            login.setPassword(null);
-            return new ResponseBodyMessage<>(1,"登录成功",login);
-        }
-        return new ResponseBodyMessage<>(-1,"用户名或密码错误",login);
+        HttpSession httpSession = req.getSession(true);
+        httpSession.setAttribute("user", user);
+        return user;
     }
-    @RequestMapping("/register")
-    public ResponseBodyMessage<User> register(@RequestParam String username, @RequestParam String password){
-        User newUser = new User();
+
+    @PostMapping("/register")
+    @ResponseBody
+    public Object register(String username, String password) {
         try {
-           String encryptionPassword = bCryptPasswordEncoder.encode(password);
-            newUser.setUsername(username);
-            newUser.setPassword(encryptionPassword);
-            userService.insert(newUser);
-        }catch (DuplicateKeyException e){
-            return new ResponseBodyMessage<>(-1,"用户已经存在",null);
+            User user = new User();
+            user.setUsername(username);
+            user.setPassword(DigestUtil.md5Hex(password));
+           userService.insert(user);
+            return user;
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            User user = new User();
+            return user;
         }
-        
-        return new ResponseBodyMessage<>(1,"注册成功",newUser);
     }
 
-    @RequestMapping("/userInfo")
-    public ResponseBodyMessage<User> get(HttpServletRequest request){
-        HttpSession session = request.getSession();
-        if(session == null){
-            return new ResponseBodyMessage<User>(-1,"没有登录",null);
+    @GetMapping("/userInfo")
+    @ResponseBody
+    public Object getUserInfo(HttpServletRequest req) {
+        try {
+            HttpSession httpSession = req.getSession(false);
+            User user = (User) httpSession.getAttribute("user");
+            // 拿着这个 user 对象, 去数据库中找, 找到最新的数据
+            User newUser = userService.selectByName(user.getUsername());
+            return newUser;
+        } catch (NullPointerException e) {
+            return new User();
         }
-        User userInfo = (User)session.getAttribute("userInfo");
-        if(userInfo == null){
-            return new ResponseBodyMessage<User>(-1,"没有登录",null);
-        }
-        User user = userService.selectByUsername(userInfo.getUsername());
-        return  new ResponseBodyMessage<>(1,"获取成功",user);
     }
-
 }

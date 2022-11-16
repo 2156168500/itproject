@@ -1,8 +1,7 @@
 package com.fjh.game;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fjh.pojo.User;
-import com.fjh.util.MatchResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
@@ -12,65 +11,74 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
-/**
- * 用来实现匹配的过程
- */
+// 这个类表示 "匹配器", 通过这个类负责完成整个匹配功能
 @Component
 public class Matcher {
-    @Autowired
-    private ObjectMapper objectMapper;
-    //天梯分小于2000的
+    // 创建三个匹配队列
     private Queue<User> normalQueue = new LinkedList<>();
-    //天梯分(2000,3000)
     private Queue<User> highQueue = new LinkedList<>();
-    //天梯分大于3000
     private Queue<User> veryHighQueue = new LinkedList<>();
-    @Autowired
-    private OnlineUserMessage onlineUserMessage ;
-    @Autowired
-    private RoomManger roomManger;
 
-    public void pushMatcher(User user){
-        int score = user.getScore();
-        synchronized (normalQueue){
-            if(score <= 2000){
+    @Autowired
+    private OnlineUserManager onlineUserManager;
+
+    @Autowired
+    private RoomManager roomManager;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    // 操作匹配队列的方法.
+    // 把玩家放到匹配队列中
+    public void add(User user) {
+        if (user.getScore() < 2000) {
+            synchronized (normalQueue) {
                 normalQueue.offer(user);
                 normalQueue.notify();
-            }else  if(score >200 && score <= 3000){
+            }
+            System.out.println("把玩家 " + user.getUsername() + " 加入到了 normalQueue 中!");
+        } else if (user.getScore() >= 2000 && user.getScore() < 3000) {
+            synchronized (highQueue) {
                 highQueue.offer(user);
                 highQueue.notify();
-            }else{
+            }
+            System.out.println("把玩家 " + user.getUsername() + " 加入到了 highQueue 中!");
+        } else {
+            synchronized (veryHighQueue) {
                 veryHighQueue.offer(user);
                 veryHighQueue.notify();
             }
+            System.out.println("把玩家 " + user.getUsername() + " 加入到了 veryHighQueue 中!");
         }
-
     }
-    public void removeMatcher(User user){
-        int score = user.getScore();
-        if(score <= 2000){
-            synchronized(normalQueue){
+
+    // 当玩家点击停止匹配的时候, 就需要把玩家从匹配队列中删除
+    public void remove(User user) {
+        if (user.getScore() < 2000) {
+            synchronized (normalQueue) {
                 normalQueue.remove(user);
             }
-
-        }else if(score > 2000 && score <= 3000){
-            synchronized (highQueue){
+            System.out.println("把玩家 " + user.getUsername() + " 移除了 normalQueue!");
+        } else if (user.getScore() >= 2000 && user.getScore() < 3000) {
+            synchronized (highQueue) {
                 highQueue.remove(user);
             }
-
-        }else{
-            synchronized(veryHighQueue) {
-                veryHighQueue.offer(user);
+            System.out.println("把玩家 " + user.getUsername() + " 移除了 highQueue!");
+        } else {
+            synchronized (veryHighQueue) {
+                veryHighQueue.remove(user);
             }
+            System.out.println("把玩家 " + user.getUsername() + " 移除了 veryHighQueue!");
         }
     }
 
-    public Matcher(){
-        Thread t1 = new Thread(){
+    public Matcher() {
+        // 创建三个线程, 分别针对这三个匹配队列, 进行操作.
+        Thread t1 = new Thread() {
             @Override
             public void run() {
-                while (true){
-                    handlerMatcher(normalQueue);
+                // 扫描 normalQueue
+                while (true) {
+                    handlerMatch(normalQueue);
                 }
             }
         };
@@ -79,63 +87,89 @@ public class Matcher {
         Thread t2 = new Thread(){
             @Override
             public void run() {
-                while (true){
-                    handlerMatcher(highQueue);
+                while (true) {
+                    handlerMatch(highQueue);
                 }
             }
         };
         t2.start();
-        Thread t3 = new Thread(){
+
+        Thread t3 = new Thread() {
             @Override
             public void run() {
-                while (true){
-                    handlerMatcher(veryHighQueue);
+                while (true) {
+                    handlerMatch(veryHighQueue);
                 }
             }
         };
         t3.start();
     }
-    public void handlerMatcher(Queue<User> queue){
-        synchronized(queue){
-            while (queue.size() < 2){
-                try {
-                    queue.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            User user1 = queue.poll();
-            User user2= queue.poll();
-            WebSocketSession session1 = onlineUserMessage.getFromGameHall(user1.getUserId());
-            WebSocketSession session2 = onlineUserMessage.getFromGameHall(user2.getUserId());
-            if(session1 == null){//用户一下线了
-                queue.offer(user2);
-                return ;
-            }
-            if(session2 == null){//用户二下线了
-                queue.offer(user1);
-                return ;
-            }
-            //多开的情况,理论上在之前的建立连接的过程就避免了这种情况,但是还是要再次进行
-            //判断,保证程序的可靠性
-            if(session1 == session2){
-                queue.offer(user1);
-                return;
-            }
-            //下面是匹配成功之后的操作
-            Room room = new Room();
-            roomManger.add(room,user1.getUserId(),user2.getUserId());
-            //2.给玩家1返回数据
-            MatchResponse response = new MatchResponse();
-            response.setOk(true);
-            response.setMessage("successMatch");
-            try {
-                session1.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
-                session2.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
-            } catch (IOException e) {
-                e.printStackTrace();
 
+    private void handlerMatch(Queue<User> matchQueue) {
+        synchronized (matchQueue) {
+            try {
+                // 1. 检测队列中元素个数是否达到 2
+                //    队列的初始情况可能是 空
+                //    如果往队列中添加一个元素, 这个时候, 仍然是不能进行后续匹配操作的.
+                //    因此在这里使用 while 循环检查是更合理的~~
+                while (matchQueue.size() < 2) {
+                    matchQueue.wait();
+                }
+                // 2. 尝试从队列中取出两个玩家
+                User player1 = matchQueue.poll();
+                User player2 = matchQueue.poll();
+                System.out.println("匹配出两个玩家: " + player1.getUsername() + ", " + player2.getUsername());
+                // 3. 获取到玩家的 websocket 的会话
+                //    获取到会话的目的是为了告诉玩家, 你排到了~~
+                WebSocketSession session1 = onlineUserManager.getFromGameHall(player1.getUserId());
+                WebSocketSession session2 = onlineUserManager.getFromGameHall(player2.getUserId());
+                // 理论上来说, 匹配队列中的玩家一定是在线的状态.
+                // 因为前面的逻辑里进行了处理, 当玩家断开连接的时候就把玩家从匹配队列中移除了.
+                // 但是此处仍然进行一次判定~~
+                if (session1 == null) {
+                    // 如果玩家1 现在不在线了, 就把玩家2 重新放回到匹配队列中
+                    matchQueue.offer(player2);
+                    return;
+                }
+                if (session2 == null) {
+                    // 如果玩家2 现在下线了, 就把玩家1 重新放回匹配队列中
+                    matchQueue.offer(player1);
+                    return;
+                }
+                // 当前能否排到两个玩家是同一个用户的情况嘛? 一个玩家入队列了两次??
+                // 理论上也不会存在~~
+                // 1) 如果玩家下线, 就会对玩家移出匹配队列
+                // 2) 又禁止了玩家多开.
+                // 但是仍然在这里多进行一次判定, 以免前面的逻辑出现 bug 时带来严重的后果.
+                if (session1 == session2) {
+                    // 把其中的一个玩家放回匹配队列.
+                    matchQueue.offer(player1);
+                    return;
+                }
+
+                // 4. 把这两个玩家放到一个游戏房间中.
+                // 一会再实现这里
+                Room room = new Room();
+                roomManager.add(room, player1.getUserId(), player2.getUserId());
+
+                // 5. 给玩家反馈信息: 你匹配到对手了~
+                //    通过 websocket 返回一个 message 为 'matchSuccess' 这样的响应
+                //    此处是要给两个玩家都返回 "匹配成功" 这样的信息.
+                //    因此就需要返回两次
+                MatchResponse response1 = new MatchResponse();
+                response1.setOk(true);
+                response1.setMessage("matchSuccess");
+                String json1 = objectMapper.writeValueAsString(response1);
+                session1.sendMessage(new TextMessage(json1));
+
+                MatchResponse response2 = new MatchResponse();
+                response2.setOk(true);
+                response2.setMessage("matchSuccess");
+                String json2 = objectMapper.writeValueAsString(response2);
+                session2.sendMessage(new TextMessage(json2));
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
             }
         }
-        }
+    }
 }

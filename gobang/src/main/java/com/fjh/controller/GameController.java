@@ -1,164 +1,177 @@
 package com.fjh.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fjh.game.OnlineUserMessage;
-import com.fjh.game.Room;
-import com.fjh.game.RoomManger;
+import com.fjh.game.*;
 import com.fjh.pojo.User;
+import com.fjh.mapper.UserMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fjh.service.UserService;
-import com.fjh.util.GameReadyResponse;
-import com.fjh.util.GameResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import sun.nio.cs.US_ASCII;
 
+import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.Random;
 
-@Controller
+@Component
 public class GameController extends TextWebSocketHandler {
+    private ObjectMapper objectMapper = new ObjectMapper();
+
     @Autowired
-    private ObjectMapper objectMapper;
+    private RoomManager roomManager;
+
     @Autowired
-    private RoomManger roomManger;
-    @Autowired
-    private OnlineUserMessage onlineUserMessage;
+    private OnlineUserManager onlineUserManager;
+
     @Autowired
     private UserService userService;
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        //处理链接成功
-        //1.检测用户的登录状态
-        User user = (User) session.getAttributes().get("userInfo");
-        if(user == null){//没有登录
-            System.out.println("没有登录");
-            GameReadyResponse response = new GameReadyResponse();
-            response.setOk(false);
-            response.setReason("尚未登录");
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
-            return ;
-        }
-        //2.判断当前用户是否在房间中
-        Room room = roomManger.getRoomByUserId(user.getUserId());
-        if(room == null){
-            System.out.println("用户不在房间中");
-            GameReadyResponse response = new GameReadyResponse();
-            response.setOk(false);
-            response.setReason("用户尚未匹配不能进行游戏");
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
+        GameReadyResponse resp = new GameReadyResponse();
+
+        // 1. 先获取到用户的身份信息. (从 HttpSession 里拿到当前用户的对象)
+        User user = (User) session.getAttributes().get("user");
+        if (user == null) {
+            resp.setOk(false);
+            resp.setReason("用户尚未登录!");
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(resp)));
             return;
         }
-        //3.判断多开的情况
-        //当前用户如果在游戏大厅或者游戏房间中则当前用户已经在登录状态了
-        if(onlineUserMessage.getFromGameHall(user.getUserId()) != null ||
-        onlineUserMessage.getFromGameRoom(user.getUserId()) != null        ){
-            System.out.println("检测到多开");
-            GameReadyResponse response = new GameReadyResponse();
-            response.setOk(true);
-            response.setMessage("repeatConnection");
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
-            return ;
-        }
-        //将当前用户和回话进行管理
-        onlineUserMessage.enterGameRoom(user.getUserId(),session);
 
-        synchronized (room){
-            if(room.getUser1() == null){//第一个用户还没有进入设置
-                //将当前用户作为user1
+        // 2. 判定当前用户是否已经进入房间. (拿着房间管理器进行查询)
+        Room room = roomManager.getRoomByUserId(user.getUserId());
+        if (room == null) {
+            // 如果为 null, 当前没有找到对应的房间. 该玩家还没有匹配到.
+            resp.setOk(false);
+            resp.setReason("用户尚未匹配到!");
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(resp)));
+            return;
+        }
+
+        // 3. 判定当前是不是多开 (该用户是不是已经在其他地方进入游戏了)
+        //    前面准备了一个 OnlineUserManager
+        if (onlineUserManager.getFromGameHall(user.getUserId()) != null
+                || onlineUserManager.getFromGameRoom(user.getUserId()) != null) {
+            // 如果一个账号, 一边是在游戏大厅, 一边是在游戏房间, 也视为多开~~
+            resp.setOk(true);
+            resp.setReason("禁止多开游戏页面");
+            resp.setMessage("repeatConnection");
+            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(resp)));
+            return;
+        }
+
+        // 4. 设置当前玩家上线!
+        onlineUserManager.enterGameRoom(user.getUserId(), session);
+
+        // 5. 把两个玩家加入到游戏房间中.
+        //    前面的创建房间/匹配过程, 是在 game_hall.html 页面中完成的.
+        //    因此前面匹配到对手之后, 需要经过页面跳转, 来到 game_room.html 才算正式进入游戏房间(才算玩家准备就绪)
+        //    当前这个逻辑是在 game_room.html 页面加载的时候进行的.
+        //    执行到当前逻辑, 说明玩家已经页面跳转成功了!!
+        //    页面跳转, 其实是个大活~~ (很有可能出现 "失败" 的情况的)
+        synchronized (room) {
+            if (room.getUser1() == null) {
+                // 第一个玩家还尚未加入房间.
+                // 就把当前连上 websocket 的玩家作为 user1, 加入到房间中.
                 room.setUser1(user);
+                // 把先连入房间的玩家作为先手方.
+                room.setWhiteUser(user.getUserId());
+                System.out.println("玩家 " + user.getUsername() + " 已经准备就绪! 作为玩家1");
                 return;
             }
-            if(room.getUser2() == null){//第二个用户还没有设置
+            if (room.getUser2() == null) {
+                // 如果进入到这个逻辑, 说明玩家1 已经加入房间, 现在要给当前玩家作为玩家2 了
                 room.setUser2(user);
-                int whiteUserId = 0;
-                int ret  = new Random().nextInt();
-                whiteUserId = ret % 2 == 0 ? room.getUser1().getUserId(): room.getUser2().getUserId();
+                System.out.println("玩家 " + user.getUsername() + " 已经准备就绪! 作为玩家2");
 
-                new Random();
-                //玩家1准备就绪
-                noticeGameReady(room,room.getUser1().getUserId(),room.getUser2().getUserId(), whiteUserId);
-                //玩家二准备就绪
-                noticeGameReady(room,room.getUser2().getUserId(),room.getUser1().getUserId(),whiteUserId);
-                return ;
+                // 当两个玩家都加入成功之后, 就要让服务器, 给这两个玩家都返回 websocket 的响应数据.
+                // 通知这两个玩家说, 游戏双方都已经准备好了.
+                // 通知玩家1
+                noticeGameReady(room, room.getUser1(), room.getUser2());
+                // 通知玩家2
+                noticeGameReady(room, room.getUser2(), room.getUser1());
+                return;
             }
         }
 
-        System.out.println("房间满了");
-        GameReadyResponse response = new GameReadyResponse();
-        response.setOk(false);
-        response.setReason("房间已满");
-        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
-
+        // 6. 此处如果又有玩家尝试连接同一个房间, 就提示报错.
+        //    这种情况理论上是不存在的, 为了让程序更加的健壮, 还是做一个判定和提示.
+        resp.setOk(false);
+        resp.setReason("当前房间已满, 您不能加入房间");
+        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(resp)));
     }
 
+    private void noticeGameReady(Room room, User thisUser, User thatUser) throws IOException {
+        GameReadyResponse resp = new GameReadyResponse();
+        resp.setMessage("gameReady");
+        resp.setOk(true);
+        resp.setReason("");
+        resp.setRoomId(room.getRoomId());
+        resp.setThisUserId(thisUser.getUserId());
+        resp.setThatUserId(thatUser.getUserId());
+        resp.setWhiteUser(room.getWhiteUser());
+        // 把当前的响应数据传回给玩家.
+        WebSocketSession webSocketSession = onlineUserManager.getFromGameRoom(thisUser.getUserId());
+        webSocketSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(resp)));
+    }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-       User user = (User) session.getAttributes().get("userInfo");
-       if(user == null){
-           System.out.println("尚未登录 落子模块不能访问");
-           return ;
-       }
-       //获取用户所在的游戏房间
-        Room room = roomManger.getRoomByUserId(user.getUserId());
-       if(room == null){
-           System.out.println("房间为空");
+        // 1. 先从 session 里拿到当前用户的身份信息
+        User user = (User) session.getAttributes().get("user");
+        if (user == null) {
+            System.out.println("[handleTextMessage] 当前玩家尚未登录! ");
+            return;
         }
-       room.putChess(message.getPayload());
+
+        // 2. 根据玩家 id 获取到房间对象
+        Room room = roomManager.getRoomByUserId(user.getUserId());
+        // 3. 通过 room 对象来处理这次具体的请求
+        room.putChess(message.getPayload());
     }
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-      User user = (User) session.getAttributes().get("userInfo");
-      if(user == null){
-          return;
-      }
-      WebSocketSession temp = onlineUserMessage.getFromGameRoom(user.getUserId());
-      if(temp == session){
-          System.out.println("下线");
-          onlineUserMessage.exitGameRoom(user.getUserId());
-      }
-      noticeThatUserWin(user);
+        User user = (User) session.getAttributes().get("user");
+        if (user == null) {
+            // 此处就简单处理, 在断开连接的时候就不给客户端返回响应了.
+            return;
+        }
+        WebSocketSession exitSession = onlineUserManager.getFromGameRoom(user.getUserId());
+        if (session == exitSession) {
+            // 加上这个判定, 目的是为了避免在多开的情况下, 第二个用户退出连接动作, 导致第一个用户的会话被删除.
+            onlineUserManager.exitGameRoom(user.getUserId());
+        }
+        System.out.println("当前用户 " + user.getUsername() + " 游戏房间连接异常!");
+
+        // 通知对手获胜了
+        noticeThatUserWin(user);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        User user = (User) session.getAttributes().get("userInfo");
-        if(user == null){
+        User user = (User) session.getAttributes().get("user");
+        if (user == null) {
+            // 此处就简单处理, 在断开连接的时候就不给客户端返回响应了.
             return;
         }
-        WebSocketSession temp = onlineUserMessage.getFromGameRoom(user.getUserId());
-        if(temp == session){
-            System.out.println("下线");
-            onlineUserMessage.exitGameRoom(user.getUserId());
+        WebSocketSession exitSession = onlineUserManager.getFromGameRoom(user.getUserId());
+        if (session == exitSession) {
+            // 加上这个判定, 目的是为了避免在多开的情况下, 第二个用户退出连接动作, 导致第一个用户的会话被删除.
+            onlineUserManager.exitGameRoom(user.getUserId());
         }
+        System.out.println("当前用户 " + user.getUsername() + " 离开游戏房间!");
+
+        // 通知对手获胜了
         noticeThatUserWin(user);
     }
 
-    private void noticeGameReady(Room room, Integer thisUserId, Integer thatUserId,int whiteUserId) {
-        System.out.println("先手" + whiteUserId);
-        GameReadyResponse response = new GameReadyResponse();
-        response.setOk(true);
-        response.setMessage("gameReady");
-        response.setThisUserId(thisUserId);
-        response.setThatUserId(thatUserId);
-        response.setWhiteUser(whiteUserId);
-        WebSocketSession session = onlineUserMessage.getFromGameRoom(thisUserId);
-        try {
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(response)));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-    //处理对手下线
     private void noticeThatUserWin(User user) throws IOException {
         // 1. 根据当前玩家, 找到玩家所在的房间
-        Room room = roomManger.getRoomByUserId(user.getUserId());
+        Room room = roomManager.getRoomByUserId(user.getUserId());
         if (room == null) {
             // 这个情况意味着房间已经被释放了, 也就没有 "对手" 了
             System.out.println("当前房间已经释放, 无需通知对手!");
@@ -168,11 +181,11 @@ public class GameController extends TextWebSocketHandler {
         // 2. 根据房间找到对手
         User thatUser = (user == room.getUser1()) ? room.getUser2() : room.getUser1();
         // 3. 找到对手的在线状态
-        WebSocketSession webSocketSession = onlineUserMessage.getFromGameRoom(thatUser.getUserId());
+        WebSocketSession webSocketSession = onlineUserManager.getFromGameRoom(thatUser.getUserId());
         if (webSocketSession == null) {
             // 这就意味着对手也掉线了!
             System.out.println("对手也已经掉线了, 无需通知!");
-            //return;
+            return;
         }
         // 4. 构造一个响应, 来通知对手, 你是获胜方
         GameResponse resp = new GameResponse();
@@ -184,11 +197,12 @@ public class GameController extends TextWebSocketHandler {
         // 5. 更新玩家的分数信息
         int winUserId = thatUser.getUserId();
         int loseUserId = user.getUserId();
+        System.out.println(winUserId + " :赢了");
+        System.out.println(loseUserId + " :输了");
         userService.userWin(winUserId);
         userService.userLose(loseUserId);
 
         // 6. 释放房间对象
-        roomManger.remove(room, room.getUser1().getUserId(), room.getUser2().getUserId());
+        roomManager.remove(room.getRoomId(), room.getUser1().getUserId(), room.getUser2().getUserId());
     }
-
 }

@@ -1,8 +1,8 @@
 package com.fjh.config;
 
-import com.fjh.API.TestAPI;
 import com.fjh.controller.GameController;
 import com.fjh.controller.MatchController;
+import com.fjh.controller.TestController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -14,15 +14,20 @@ import org.springframework.web.socket.server.support.HttpSessionHandshakeInterce
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
-    private TestAPI api;
+    private TestController testAPI;
+
     @Autowired
-    private MatchController matchController;
+    private MatchController matchAPI;
+
     @Autowired
-    private GameController gameController;
+    private GameController gameAPI;
+
     @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler( api,"/test")
-                .addHandler(matchController,"/findMatch").addInterceptors(new HttpSessionHandshakeInterceptor())
-                .addHandler(gameController,"/game").addInterceptors(new HttpSessionHandshakeInterceptor());
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
+        webSocketHandlerRegistry.addHandler(testAPI, "/test");
+        webSocketHandlerRegistry.addHandler(matchAPI, "/findMatch")
+                .addInterceptors(new HttpSessionHandshakeInterceptor());
+        webSocketHandlerRegistry.addHandler(gameAPI, "/game")
+                .addInterceptors(new HttpSessionHandshakeInterceptor());
     }
 }

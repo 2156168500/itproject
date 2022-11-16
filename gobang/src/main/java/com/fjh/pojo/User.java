@@ -1,69 +1,58 @@
 package com.fjh.pojo;
 
-import lombok.Data;
-
-@Data
 public class User {
+    private int userId;
+    private String username;
+    private String password;
+    private int score;
+    private int totalCount;
+    private int winCount;
 
-  private Integer userId;
-  private String username;
-  private String password;
-  private Integer score;
-  private Integer totalCount;
-  private Integer winCount;
+    public int getUserId() {
+        return userId;
+    }
 
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
 
-  public Integer getUserId() {
-    return userId;
-  }
+    public String getUsername() {
+        return username;
+    }
 
-  public void setUserId(Integer userId) {
-    this.userId = userId;
-  }
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
+    public String getPassword() {
+        return password;
+    }
 
-  public String getUsername() {
-    return username;
-  }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-  public void setUsername(String username) {
-    this.username = username;
-  }
+    public int getScore() {
+        return score;
+    }
 
+    public void setScore(int score) {
+        this.score = score;
+    }
 
-  public String getPassword() {
-    return password;
-  }
+    public int getTotalCount() {
+        return totalCount;
+    }
 
-  public void setPassword(String password) {
-    this.password = password;
-  }
+    public void setTotalCount(int totalCount) {
+        this.totalCount = totalCount;
+    }
 
+    public int getWinCount() {
+        return winCount;
+    }
 
-  public Integer getScore() {
-    return score;
-  }
-
-  public void setScore(Integer score) {
-    this.score = score;
-  }
-
-
-  public Integer getTotalCount() {
-    return totalCount;
-  }
-
-  public void setTotalCount(Integer totalCount) {
-    this.totalCount = totalCount;
-  }
-
-
-  public Integer getWinCount() {
-    return winCount;
-  }
-
-  public void setWinCount(Integer winCount) {
-    this.winCount = winCount;
-  }
-
+    public void setWinCount(int winCount) {
+        this.winCount = winCount;
+    }
 }
