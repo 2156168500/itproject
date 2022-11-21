@@ -77,6 +77,18 @@
         <bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
             <property name="paramName" value="lang" />
         </bean>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <mvc:exclude-mapping path="/" />
+            <mvc:exclude-mapping path="/comm/login.html" />
+            <mvc:exclude-mapping path="/comm/login" />
+            <mvc:exclude-mapping path="/comm/exit" />
+            <mvc:exclude-mapping path="/comm/timeout.html" />
+            <mvc:exclude-mapping path="/js/**" />
+            <mvc:exclude-mapping path="/css/**" />
+            <mvc:exclude-mapping path="/images/**" />
+            <bean id="loginInterceptor" class="com.fjh.examonline.common.interceptors.LoginInterceptor"/>
+        </mvc:interceptor>
     </mvc:interceptors>
 
 

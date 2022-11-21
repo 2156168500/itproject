@@ -7,6 +7,20 @@
     <groupId>com.fjh.examonline</groupId>
     <artifactId>exam-common</artifactId>
     <version>1.0-SNAPSHOT</version>
-
+<parent>
+    <groupId>com.fjh.examonline</groupId>
+    <artifactId>exam-parent</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</parent>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

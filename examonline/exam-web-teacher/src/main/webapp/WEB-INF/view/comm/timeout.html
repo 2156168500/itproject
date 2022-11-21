@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>登录 樊佳合教育集团</title>
+        <!-- @{/} thymeleaf的根目录就是工程根目录 8080/examonline/ -->
+        <!-- / 服务器根目录 8080/ -->
+        <base th:href="@{/}" />
+        <script>
+            setTimeout(function () {
+                location.href = "comm/login.html";
+            },1500);
+        </script>
+
+    </head>
+    <body>
+    您没有登录或者登录超时，请重新登录
+    </body>
+</html>
