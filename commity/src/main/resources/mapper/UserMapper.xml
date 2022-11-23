@@ -30,12 +30,10 @@
         where email = #{email}
     </select>
     <insert id="insertUser" parameterType="user" keyProperty="id">
-        insert <include refid="insertTag"></include>
-        into user
+        insert
+        into user(<include refid="insertTag"></include>)
         values
-        (#{username},#{password},#{salt},#{email}
-        ,#{type},#{status},#{activationCode},#{headerUrl},
-        #{createTime})
+        (#{username},#{password},#{salt},#{email},#{type},#{status},#{activationCode},#{headerUrl},#{createTime})
     </insert>
     <update id="updateStatus">
         update user

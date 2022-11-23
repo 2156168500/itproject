@@ -9,8 +9,8 @@ public class User {
   private String password;
   private String salt;
   private String email;
-  private Long type;
-  private Long status;
+  private Integer type;
+  private Integer status;
   private String activationCode;
   private String headerUrl;
   private Date createTime;
@@ -18,7 +18,7 @@ public class User {
   public User() {
   }
 
-  public User(Integer id, String username, String password, String salt, String email, Long type, Long status, String activationCode, String headerUrl, Date createTime) {
+  public User(Integer id, String username, String password, String salt, String email, Integer type, Integer status, String activationCode, String headerUrl, Date createTime) {
     this.id = id;
     this.username = username;
     this.password = password;
@@ -71,19 +71,19 @@ public class User {
     this.email = email;
   }
 
-  public Long getType() {
+  public Integer getType() {
     return type;
   }
 
-  public void setType(Long type) {
+  public void setType(Integer type) {
     this.type = type;
   }
 
-  public Long getStatus() {
+  public Integer getStatus() {
     return status;
   }
 
-  public void setStatus(Long status) {
+  public void setStatus(Integer status) {
     this.status = status;
   }
 

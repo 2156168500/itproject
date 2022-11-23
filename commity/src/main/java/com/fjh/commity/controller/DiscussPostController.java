@@ -23,12 +23,12 @@ public class DiscussPostController {
     private DiscussPostService discussPostService;
     @Autowired
     private UserService userService;
-    @RequestMapping(path = "/index", method = RequestMethod.GET)
+    @RequestMapping(path = "/home", method = RequestMethod.GET)
     public String getDiscussPost(Model model, Page page){
         // 方法调用钱,SpringMVC会自动实例化Model和Page,并将Page注入Model.
         // 所以,在thymeleaf中可以直接访问Page对象中的数据.
         page.setRows(discussPostService.selectCount(0));
-        page.setPath("/index");
+        page.setPath("/home");
         List<DiscussPost> list = discussPostService.selectAllDiscussPost(0, page.getOffset(), page.getLimit());
         List<Map<String, Object>> discussPosts = new ArrayList<>();
         if (list != null) {
