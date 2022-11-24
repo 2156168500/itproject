@@ -6,6 +6,7 @@ import com.fjh.commity.entity.LoginTicket;
 import com.fjh.commity.entity.User;
 import com.fjh.commity.util.CommunityConst;
 import com.fjh.commity.util.CommunityUtil;
+import com.fjh.commity.util.CookieUtil;
 import com.fjh.commity.util.MailConnect;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +37,7 @@ public class UserService implements CommunityConst {
     private String domain;
     @Value("${server.servlet.context-path}")
     private String contextPath;
+    private CookieUtil cookieUtil = new CookieUtil();
     public User findUserById(String userId) {
         return userMapper.selectById(Long.parseLong(userId));
     }
@@ -144,4 +148,16 @@ public class UserService implements CommunityConst {
     public void logout(String taicket){
         loginTicketMapper.updateStatus(taicket,1);
     }
+
+    public User getUser(HttpServletRequest request){
+        String ticket = CookieUtil.getValue(request, "ticket");
+        if(ticket != null){
+            LoginTicket loginTicket = loginTicketMapper.selectLoginTicket(ticket);
+            if(loginTicket != null && loginTicket.getStatus() == 0 && loginTicket.getExpired().after(new Date())){
+                return userMapper.selectById(loginTicket.getUserId());
+            }
+        }
+        return  null;
+    }
+
 }
