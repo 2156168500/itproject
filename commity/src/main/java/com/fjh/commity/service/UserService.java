@@ -1,6 +1,8 @@
 package com.fjh.commity.service;
 
+import com.fjh.commity.dao.LoginTicketMapper;
 import com.fjh.commity.dao.UserMapper;
+import com.fjh.commity.entity.LoginTicket;
 import com.fjh.commity.entity.User;
 import com.fjh.commity.util.CommunityConst;
 import com.fjh.commity.util.CommunityUtil;
@@ -22,6 +24,8 @@ import java.util.Random;
 public class UserService implements CommunityConst {
     @Resource
     private UserMapper userMapper;
+    @Resource
+    private LoginTicketMapper loginTicketMapper;
     @Autowired
     private TemplateEngine templateEngine;
     @Autowired
@@ -94,5 +98,50 @@ public class UserService implements CommunityConst {
         }
         userMapper.updateStatus(userId,1);
         return CommunityConst.ACTIVATION_SUCCESS;
+    }
+
+    /**
+     * 用于对于登录逻辑的处理
+     */
+    public Map<String,Object> login(String username,String password,int expiredSeconds){
+        Map<String,Object> map = new HashMap<>();
+        if(StringUtils.isBlank(username)){
+            map.put("usernameMsg","用户名不能为空");
+            return  map;
+        }
+        if(StringUtils.isBlank(password)){
+            map.put("passwordMsg","密码不能为空");
+            return map;
+        }
+        //代码来到这里说明，用户名和密码都是有效的
+        User user = userMapper.selectByUsername(username);
+        if(user == null){
+            map.put("usernameMsg","用户不存在");
+            return map;
+        }
+        if(user.getStatus() == 0){//说明账号还没有被激活
+            map.put("usernameMsg","用户没有被激活");
+            return map;
+        }
+        //比较密码
+        password = CommunityUtil.md5(password + user.getSalt());
+        if(!password.equals(user.getPassword())){
+            map.put("passwordMsg","密码错误");
+            return map;
+        }
+        //代码来到这里说明，登录是成功的。设置ticket
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setStatus(0);
+        loginTicket.setTicket(CommunityUtil.getUUID());
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + 1000 * expiredSeconds));
+        loginTicketMapper.insertLoginTicket(loginTicket);
+        //将登录凭证存储在数据库中之后，要把这个凭证存在map中，给Controller层去判断
+        map.put("ticket",loginTicket.getTicket());
+        return map;
+    }
+
+    public void logout(String taicket){
+        loginTicketMapper.updateStatus(taicket,1);
     }
 }
