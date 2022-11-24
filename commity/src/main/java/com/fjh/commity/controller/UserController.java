@@ -3,6 +3,8 @@ package com.fjh.commity.controller;
 import com.fjh.commity.entity.User;
 import com.fjh.commity.service.UserService;
 import com.fjh.commity.util.CommunityConst;
+import com.google.code.kaptcha.Producer;
+import com.sun.deploy.net.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +14,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Map;
 
 @Controller
 public class UserController implements CommunityConst {
     @Autowired
     private UserService userService;
+    @Autowired
+    private Producer kaptchaProducer;
     private final  static Logger logger = LoggerFactory.getLogger(UserController.class);
     @GetMapping("/register")
     public String toRegister(){
@@ -62,5 +72,19 @@ public class UserController implements CommunityConst {
         }
 
         return "/site/operate-result";
+    }
+    @GetMapping("/kaptcha")
+    public void getKaptchaProducer(HttpServletResponse response, HttpSession session)  {
+        String text = kaptchaProducer.createText();
+        BufferedImage image = kaptchaProducer.createImage(text);
+        session.setAttribute("kaptcha",text);
+        response.setContentType("image/png");
+        response.setCharacterEncoding("utf-8");
+        try {
+            ServletOutputStream os = response.getOutputStream();
+            ImageIO.write(image,"png",os);
+        } catch (IOException e) {
+            logger.error("验证码响应失败");
+        }
     }
 }
