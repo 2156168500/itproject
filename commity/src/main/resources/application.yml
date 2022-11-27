@@ -1,0 +1,44 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /commity
+spring:
+  datasource:
+    username: "root"
+    password: "root"
+    url: jdbc:mysql://127.0.0.1:3306/community?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      idle-timeout: 30000
+  thymeleaf:
+    cache: false
+  mail:
+    host: smtp.126.com
+    port: 465
+    username: fjh_020317@126.com
+    password: IILSKTTARLEAEPRG
+    default-encoding: UTF-8
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.fjh.commity.entity
+  configuration:
+    use-generated-keys: true
+    map-underscore-to-camel-case: true
+logging:
+  level:
+    com.fjh.commity.dao: debug
+
+#自定义内容
+community:
+  path:
+    domain: http://localhost:8080
+    upload: D:\work\image
