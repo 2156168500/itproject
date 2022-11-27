@@ -160,4 +160,22 @@ public class UserService implements CommunityConst {
         return  null;
     }
 
+    /**
+     *修改密码
+     */
+    public int  updatePassword(int userId,String newPassword){
+        return userMapper.updatePassword(userId,newPassword);
+    }
+
+    public int updateSalt(int userId,String salt){
+        return userMapper.updateSalt(userId,salt);
+    }
+
+    /**
+     * 上传头像
+     */
+    public int uploadHeader(int id,String headerPath){
+       return userMapper.updateHeader(id,headerPath);
+    }
+
 }

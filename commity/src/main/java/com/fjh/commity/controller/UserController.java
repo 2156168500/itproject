@@ -1,127 +1,134 @@
 package com.fjh.commity.controller;
 
+import com.fjh.commity.annotation.LoginRequired;
 import com.fjh.commity.entity.User;
 import com.fjh.commity.service.UserService;
-import com.fjh.commity.util.CommunityConst;
-import com.google.code.kaptcha.Producer;
+import com.fjh.commity.util.CommunityUtil;
+import com.fjh.commity.util.HostHolder;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Map;
 
 @Controller
-public class UserController implements CommunityConst {
+@RequestMapping("/user")
+public class UserController  {
     @Autowired
     private UserService userService;
     @Autowired
-    private Producer kaptchaProducer;
-    private final  static Logger logger = LoggerFactory.getLogger(UserController.class);
-    @GetMapping("/register")
-    public String toRegister(){
-        System.out.println("go to register");
-        return "/site/register";
+    private HostHolder hostHolder;
+    @Value("${community.path.domain}")
+    private String domain;
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
+    @Value("${community.path.upload}")
+    private String uploadPath;
+    @LoginRequired
+    @GetMapping("/update")
+    public String toUpdate(){
+        return "/site/setting";
     }
-    @GetMapping("/login")
-    public String toLogin(){
-        return "/site/login";
-    }
-    @PostMapping("/register")
-    public String Register(Model model, User user){
-        Map<String, Object> map = userService.register(user);
-        if(map != null && !map.isEmpty()){
-            //获取map中的数据,返回给register.html
-           model.addAttribute("usernameMsg",map.get("usernameMsg"));
-           model.addAttribute("passwordMsg",map.get("passwordMsg"));
-           model.addAttribute("emailMsg",map.get("emailMsg"));
-           return "/site/register";
+    @LoginRequired
+    @PostMapping("/update")
+    public String update(Model model, String oldPassword, String newPassword){
+        if (StringUtils.isBlank(oldPassword)){
+            model.addAttribute("msg","密码不能为空" );
+            return "/site/setting";
         }
-        model.addAttribute("msg","您已经注册成功，我们给您发送了一份激活邮件，请您激活登录");
-        model.addAttribute("target","/home");
-        return "/site/operate-result";
+        if(StringUtils.isBlank(newPassword)) {
+            model.addAttribute("msg", "新密码不能为空");
+            return "/site/setting";
+        }
+        User user = hostHolder.getUser();
+        oldPassword = CommunityUtil.md5(oldPassword + user.getSalt());
+        String salt = CommunityUtil.getUUID().substring(0,5);
+        newPassword = CommunityUtil.md5(newPassword + salt );
+        if(!user.getPassword().equals(oldPassword)){
+            model.addAttribute("meg","原密码不正确");
+            return "/site/setting";
+        }
+        userService.updatePassword(user.getId(),newPassword);
+        userService.updateSalt(user.getId(),salt);
+        return "redirect:/logout";
     }
 
-    //http://localhost:8080/community/activation/101/code
-    @GetMapping("/activation/{userId}/{code}")
-    public String activation(Model model, @PathVariable("userId") int userId,
-                             @PathVariable("code") String code){
-        logger.info("userId = " + userId);
-        logger.info("code = " + code);
-        int result = userService.activation(userId, code);
-        if(result == CommunityConst.ACTIVATION_SUCCESS){
-            model.addAttribute("msg","激活成功，您可以正常使用");
-            model.addAttribute("target","/login");
-        }else if(result == CommunityConst.ACTIVATION_REPEAT){
-            model.addAttribute("msg","无效激活，您的账户已经被激活过了");
-            model.addAttribute("target","/home");
-        }else {
-            model.addAttribute("msg","激活失败，您提供的激活码错误");
-            model.addAttribute("target","/home");
+    @PostMapping("/upload")
+    @LoginRequired
+    public String upload(MultipartFile headerImage,Model model){
+        if(headerImage == null){
+            model.addAttribute("msg","文件不能为空");
+            return "/site/setting";
         }
-
-        return "/site/operate-result";
+        //首先获取文件的文件名
+        String fileName = headerImage.getOriginalFilename();
+        if(fileName == null){
+            model.addAttribute("msg","文件格式错误");
+            return "/site/setting";
+        }
+        //获取后缀
+        String suffix = fileName.substring(fileName.lastIndexOf("."));
+        if(StringUtils.isBlank(suffix)){
+            model.addAttribute("msg","文件格式错误");
+            return "/site/setting";
+        }
+        //生成随机的文件名
+        fileName = CommunityUtil.getUUID() + suffix;
+        //生成文件存放的位置
+        String path = uploadPath + "/" + fileName;
+        //生成文件
+        File dest = new File(path);
+        //存放文件
+        try {
+            headerImage.transferTo(dest);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //生成web访问路径
+        //http://localhost:8080/community/user/header/xxx.xxx;
+        String webPath = domain + contextPath + "/user/header/" + fileName ;
+        userService.uploadHeader(hostHolder.getUser().getId(),webPath);
+        return "redirect:/home";
     }
-    @GetMapping("/kaptcha")
-    public void getKaptchaProducer(HttpServletResponse response, HttpSession session)  {
-        String text = kaptchaProducer.createText();
-        BufferedImage image = kaptchaProducer.createImage(text);
-        session.setAttribute("kaptcha",text);
-        response.setContentType("image/png");
-        response.setCharacterEncoding("utf-8");
+    @LoginRequired
+    @GetMapping("/header/{fileName}")
+    //http://localhost:8080/community/user/header/xxx.xxx;
+    public void getHeader(@PathVariable("fileName") String fileName, HttpServletResponse response){
+        //获取服务器上头像的存储位置
+        fileName = uploadPath + "/" + fileName;
+        //获取后缀
+        String suffix = fileName.substring(fileName.lastIndexOf("."));
+        FileInputStream fis = null;
+        response.setContentType("image/" + suffix);
         try {
             ServletOutputStream os = response.getOutputStream();
-            ImageIO.write(image,"png",os);
-        } catch (IOException e) {
-            logger.error("验证码响应失败");
+            fis = new FileInputStream(fileName);
+            byte[]buffer = new byte[1024];
+            int b = 0;
+            while ((b = fis.read(buffer)) != -1){
+                os.write(buffer,0,b);
+            }
+        }catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if(fis != null){
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
-    @PostMapping("/login")
-    public String login(String username,String password,String code,boolean rememberMe,
-                        Model model,HttpServletResponse response,HttpSession session
-                        ){
-        if(StringUtils.isBlank(code)){
-            model.addAttribute("codeMsg","验证码不能为空");
-            return "/site/login";
-        }
-        //对验证码进行判断
-        String kaptcha = (String) session.getAttribute("kaptcha");
-        if(!code.equalsIgnoreCase(kaptcha)){
-            model.addAttribute("codeMsg","验证码错误");
-            return "/site/login";
-        }
-        int expiredSeconds = rememberMe ? REMEMBER_EXPIRED_SECONDS :DEFAULT_EXPIRED_SECONDS;
-        Map<String, Object> map = userService.login(username, password, expiredSeconds);
-        if(map.containsKey("ticket")){//说明是登录成功的
-            //登录成功之后,要把登录凭证发给浏览器
-            Cookie cookie = new Cookie("ticket",(String) map.get("ticket"));
-            cookie.setMaxAge(expiredSeconds);
-            response.addCookie(cookie);
-            return "redirect:/home";
-        }else {
-            model.addAttribute("usernameMsg",map.get("usernameMsg"));
-            model.addAttribute("passwordMsg",map.get("passwordMsg"));
-            return "/site/login";
-        }
-    }
-    @GetMapping("/logout")
-    public String logout(@CookieValue String ticket){
-        userService.logout(ticket);
-        return "redirect:/login";
-    }
-
-
 }
