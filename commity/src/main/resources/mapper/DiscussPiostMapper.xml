@@ -6,6 +6,9 @@
     <sql id="selectTag">
         id, user_id, title, content, type, status, create_time, comment_count, score
     </sql>
+    <sql id="insertTag">
+         user_id, title, content, type, status, create_time, comment_count, score
+    </sql>
     <select id="selectAllDiscussPost" resultType="discussPost">
         select  <include refid="selectTag"></include>
         from  discuss_post
@@ -24,4 +27,10 @@
             and  user_id = #{userId}
         </if>
     </select>
+<!--    //user_id, title, content, type, status, create_time, comment_count, score-->
+    <insert id="addDiscussPost" parameterType="discussPost">
+        insert  into discuss_post(<include refid="insertTag"></include>)
+        values (#{userId},#{title},#{content},#{type},#{status},#{createTime},#{commentCount},#{score})
+
+    </insert>
 </mapper>
