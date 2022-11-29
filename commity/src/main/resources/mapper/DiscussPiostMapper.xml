@@ -31,6 +31,11 @@
     <insert id="addDiscussPost" parameterType="discussPost">
         insert  into discuss_post(<include refid="insertTag"></include>)
         values (#{userId},#{title},#{content},#{type},#{status},#{createTime},#{commentCount},#{score})
-
     </insert>
+
+    <select id="selectDiscussPostById" resultType="discussPost" parameterType="int">
+        select  <include refid="selectTag"></include>
+        from  discuss_post
+        where id = #{id}
+    </select>
 </mapper>

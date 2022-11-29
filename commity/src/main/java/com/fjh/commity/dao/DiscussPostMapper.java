@@ -10,5 +10,6 @@ public interface DiscussPostMapper {
     List<DiscussPost> selectAllDiscussPost(int userId,int offset,int limit);
     int selectCount(@Param("userId") int userId);
     int addDiscussPost(DiscussPost discussPost);
+    DiscussPost selectDiscussPostById(int id);
 
 }

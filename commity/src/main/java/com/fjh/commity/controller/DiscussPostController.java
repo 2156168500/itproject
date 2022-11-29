@@ -12,9 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 
@@ -24,6 +23,8 @@ import java.util.Date;
 public class DiscussPostController {
     @Autowired
     private DiscussPostService discussPostService;
+    @Autowired
+    private UserService userService;
     @Autowired
     private HostHolder hostHolder;
     private static final Logger logger = LoggerFactory.getLogger(DiscussPostController.class);
@@ -50,5 +51,15 @@ public class DiscussPostController {
         discussPost.setCommentCount(0);
         discussPostService.addDiscussPost(discussPost);
         return CommunityUtil.getJsonString(0,"发布成功");
+    }
+    @GetMapping("/detail/{discussPostId}")
+    public String getDiscussPost(@PathVariable("discussPostId") int id, Model model){
+        //首先查询帖子
+        DiscussPost discussPost = discussPostService.selectDiscussPostById(id);
+        model.addAttribute("post",discussPost);
+        //根据userId查询用户的信息
+        User user = userService.findUserById(discussPost.getUserId());
+        model.addAttribute("user",user);
+        return "/site/discuss-detail";
     }
 }
