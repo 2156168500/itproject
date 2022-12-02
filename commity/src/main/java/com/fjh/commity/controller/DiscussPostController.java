@@ -71,7 +71,8 @@ public class DiscussPostController implements CommunityConst {
         // 评论分页信息
         page.setLimit(5);
         page.setPath("/discuss/detail/" + id);
-        page.setRows(discussPost.getCommentCount());
+        Integer commentCount = discussPost.getCommentCount();
+        page.setRows(commentCount);
 
         // 评论: 给帖子的评论
         // 回复: 给评论的评论
