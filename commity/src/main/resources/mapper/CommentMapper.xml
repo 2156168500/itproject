@@ -26,7 +26,7 @@
     <sql id="insertTag">
         user_id, entity_type, entity_id, target_id, content, status, create_time
     </sql>
-    <insert id="insertComment" parameterType="comment">
+    <insert id="insertComment" parameterType="comment" keyProperty="id">
         insert into comment (<include refid="insertTag"></include>)
         values (#{userId},#{entityType},#{entityId},#{targetId},#{content},#{status},#{createTime})
     </insert>
