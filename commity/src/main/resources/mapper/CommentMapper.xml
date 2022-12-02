@@ -23,4 +23,11 @@
         and  entity_type = #{entityType}
         and  entity_id = #{entityId}
     </select>
+    <sql id="insertTag">
+        user_id, entity_type, entity_id, target_id, content, status, create_time
+    </sql>
+    <insert id="insertComment" parameterType="comment">
+        insert into comment (<include refid="insertTag"></include>)
+        values (#{userId},#{entityType},#{entityId},#{targetId},#{content},#{status},#{createTime})
+    </insert>
 </mapper>
