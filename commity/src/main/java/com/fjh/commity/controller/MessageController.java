@@ -2,6 +2,7 @@ package com.fjh.commity.controller;
 
 import com.fjh.commity.entity.Message;
 import com.fjh.commity.entity.Page;
+import com.fjh.commity.entity.User;
 import com.fjh.commity.service.MessageService;
 import com.fjh.commity.service.UserService;
 import com.fjh.commity.util.HostHolder;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,5 +56,43 @@ public class MessageController {
         int letterUnreadCount = messageService.findLetterUnreadCount(hostHolder.getUser().getId(),null);
         model.addAttribute("letterUnreadCount",letterUnreadCount);
         return "/site/letter";
+    }
+
+    @GetMapping("/letter/detail/{conversationId}")
+    public String getLetterDetail(@PathVariable("conversationId") String conversationId, Page page, Model model) {
+        // 分页信息
+        page.setLimit(5);
+        page.setPath("/letter/detail/" + conversationId);
+        page.setRows(messageService.findLetterCount(conversationId));
+
+        // 私信列表
+        List<Message> letterList = messageService.findLetters(conversationId, page.getOffset(), page.getLimit());
+        List<Map<String, Object>> letters = new ArrayList<>();
+        if (letterList != null) {
+            for (Message message : letterList) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("letter", message);
+                map.put("fromUser", userService.findUserById(message.getFromId().toString()));
+                letters.add(map);
+            }
+        }
+        model.addAttribute("letters", letters);
+
+        // 私信目标
+        model.addAttribute("target", getLetterTarget(conversationId));
+
+        return "/site/letter-detail";
+    }
+
+    private User getLetterTarget(String conversationId) {
+        String[] ids = conversationId.split("_");
+        Integer id0 = Integer.parseInt(ids[0]);
+        Integer id1 = Integer.parseInt(ids[1]);
+
+        if (hostHolder.getUser().getId() == id0) {
+            return userService.findUserById(id1.toString());
+        } else {
+            return userService.findUserById(id0.toString());
+        }
     }
 }
