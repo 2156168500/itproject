@@ -5,17 +5,17 @@ import com.fjh.commity.entity.Page;
 import com.fjh.commity.entity.User;
 import com.fjh.commity.service.MessageService;
 import com.fjh.commity.service.UserService;
+import com.fjh.commity.util.CommunityUtil;
 import com.fjh.commity.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class MessageController {
@@ -80,8 +80,25 @@ public class MessageController {
 
         // 私信目标
         model.addAttribute("target", getLetterTarget(conversationId));
-
+        //如果有未读的消息，改为已读
+        List<Integer> ids = getIds(letterList);
+        if(!ids.isEmpty()){
+            messageService.readMessage(ids);
+        }
         return "/site/letter-detail";
+    }
+
+    private List<Integer> getIds(List<Message>messages){
+        List<Integer> ids = new ArrayList<>();
+        if (messages != null){
+            for(Message message : messages){
+                if(message.getToId().equals(hostHolder.getUser().getId()) && message.getStatus() == 0){
+                    ids.add(message.getId());
+                }
+            }
+        }
+        return ids;
+
     }
 
     private User getLetterTarget(String conversationId) {
@@ -89,10 +106,33 @@ public class MessageController {
         Integer id0 = Integer.parseInt(ids[0]);
         Integer id1 = Integer.parseInt(ids[1]);
 
-        if (hostHolder.getUser().getId() == id0) {
+        if (hostHolder.getUser().getId().equals(id0)) {
             return userService.findUserById(id1.toString());
         } else {
             return userService.findUserById(id0.toString());
         }
+    }
+    @PostMapping("/letter/save")
+    @ResponseBody
+    public String addLetter(String toName,String content){
+        //首先去数据库中利用用户名，查询用户
+        User target = userService.findUserByUsername(toName);
+        if(target == null){
+            return CommunityUtil.getJsonString(1,"用户不存在");
+        }
+        //设置私信的属性
+        Message message = new Message();
+        message.setFromId(hostHolder.getUser().getId());
+        message.setToId(target.getId());
+        message.setContent(content);
+        String conversationId = "";
+       conversationId = message.getFromId() < message.getToId()
+               ? message.getFromId() + "_" + message.getToId()
+               : message.getToId() + "_" + message.getFromId();
+       message.setConversationId(conversationId);
+       message.setStatus(0);
+       message.setCreateTime(new Date());
+       messageService.addMessage(message);
+        return CommunityUtil.getJsonString(1);
     }
 }

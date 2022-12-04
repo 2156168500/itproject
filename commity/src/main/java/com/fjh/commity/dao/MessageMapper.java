@@ -18,4 +18,8 @@ public interface MessageMapper {
     //查询用户对应的未读私信的数量，这个方法要实现为可变SQL，因为需要查询用户所有的未读私信
     //和用户的每个会话的未读消息
     int selectLetterUnreadCount(int userId, String conversationId);
+    //添加一条私信
+    int insertMessage(Message message);
+    //修改私信的住状态
+    int updateStatus(List<Integer> ids,int status);
 }

@@ -178,4 +178,8 @@ public class UserService implements CommunityConst {
        return userMapper.updateHeader(id,headerPath);
     }
 
+    public User findUserByUsername(String usernmae){
+        return userMapper.selectByUsername(usernmae);
+    }
+
 }
