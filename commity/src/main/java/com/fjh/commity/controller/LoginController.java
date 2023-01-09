@@ -4,8 +4,10 @@ import com.fjh.commity.entity.DiscussPost;
 import com.fjh.commity.entity.Page;
 import com.fjh.commity.entity.User;
 import com.fjh.commity.service.DiscussPostService;
+import com.fjh.commity.service.LikeService;
 import com.fjh.commity.service.UserService;
 import com.fjh.commity.util.CommunityConst;
+import com.fjh.commity.util.HostHolder;
 import com.google.code.kaptcha.Producer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -34,7 +36,11 @@ public class LoginController implements CommunityConst {
     @Autowired
     private DiscussPostService discussPostService;
     @Autowired
+    private LikeService likeService;
+    @Autowired
     private Producer kaptchaProducer;
+    @Autowired
+    private HostHolder hostHolder;
     private final  static Logger logger = LoggerFactory.getLogger(LoginController.class);
     @RequestMapping(path = "/home", method = RequestMethod.GET)
     public String getDiscussPost(Model model, Page page){
@@ -50,6 +56,8 @@ public class LoginController implements CommunityConst {
                 map.put("post", post);
                 User user = userService.findUserById(post.getUserId());
                 map.put("user", user);
+                long likeCount = likeService.findLikeCount(CommunityConst.ENTITY_TYPE_COMMENT,post.getId());
+                map.put("likeCount",likeCount);
                 discussPosts.add(map);
             }
         }
