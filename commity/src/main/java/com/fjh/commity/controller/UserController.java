@@ -2,6 +2,7 @@ package com.fjh.commity.controller;
 
 import com.fjh.commity.annotation.LoginRequired;
 import com.fjh.commity.entity.User;
+import com.fjh.commity.service.LikeService;
 import com.fjh.commity.service.UserService;
 import com.fjh.commity.util.CommunityUtil;
 import com.fjh.commity.util.HostHolder;
@@ -27,6 +28,8 @@ import java.io.IOException;
 public class UserController  {
     @Autowired
     private UserService userService;
+    @Autowired
+    private LikeService likeService;
     @Autowired
     private HostHolder hostHolder;
     @Value("${community.path.domain}")
@@ -130,5 +133,22 @@ public class UserController  {
                 }
             }
         }
+    }
+
+    //个人主页
+    @GetMapping("/profile/{userId}")
+    public String profilePage(@PathVariable("userId") int  userId,Model model){
+        //查询用户信息
+        User user= userService.findUserById(String.valueOf(userId));
+        if(user == null){//用户不存在
+            throw new RuntimeException("用户不存在");
+        }
+        //将用户信息发送给前端页面
+        model.addAttribute("user",user);
+        //获取该用户获的赞的数量
+        int likeUserCount = likeService.findLikeUserCount(user.getId());
+        //装配获赞数
+        model.addAttribute("likeUserCount",likeUserCount);
+        return "/site/profile";
     }
 }

@@ -20,14 +20,14 @@ public class LikeController {
     private LikeService likeService;
     @PostMapping("/like")
     @ResponseBody
-    public String like(int entityType,int entityId){
+    public String like(int entityType,int entityId,int likeUserId){
         //1.得到当前用户
         User user = hostHolder.getUser();
         if(user == null){
             return CommunityUtil.getJsonString(-1,"没有登录");
         }
         //当前用户点赞
-        likeService.like(user.getId(),entityType,entityId);
+        likeService.like(user.getId(),entityType,entityId,likeUserId);
         //获取当前的点赞状态
         int likeStatus = likeService.findLikeStatus(user.getId(),entityType,entityId);
         long likeCount = likeService.findLikeCount(entityType,entityId);

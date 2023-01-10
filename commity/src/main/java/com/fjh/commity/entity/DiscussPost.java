@@ -4,7 +4,7 @@ package com.fjh.commity.entity;
 public class DiscussPost {
 
   private Integer id;
-  private String userId;
+  private Integer userId;
   private String title;
   private String content;
   private Integer type;
@@ -23,12 +23,12 @@ public class DiscussPost {
   }
 
 
-  public String getUserId() {
+  public Integer getUserId() {
     return userId;
   }
 
   public void setUserId(String userId) {
-    this.userId = userId;
+    this.userId = Integer.parseInt(userId);
   }
 
 

@@ -66,7 +66,7 @@ public class DiscussPostController implements CommunityConst {
         DiscussPost discussPost = discussPostService.selectDiscussPostById(id);
         model.addAttribute("post",discussPost);
         //根据userId查询用户的信息
-        User user = userService.findUserById(discussPost.getUserId());
+        User user = userService.findUserById(discussPost.getUserId().toString());
         model.addAttribute("user",user);
         long likeCount = likeService.findLikeCount(CommunityConst.ENTITY_TYPE_COMMENT,id);
         int likeStatus = hostHolder.getUser() == null ? 0 :

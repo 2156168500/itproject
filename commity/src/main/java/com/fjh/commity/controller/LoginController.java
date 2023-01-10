@@ -54,7 +54,7 @@ public class LoginController implements CommunityConst {
             for (DiscussPost post : list) {
                 Map<String, Object> map = new HashMap<>();
                 map.put("post", post);
-                User user = userService.findUserById(post.getUserId());
+                User user = userService.findUserById(post.getUserId().toString());
                 map.put("user", user);
                 long likeCount = likeService.findLikeCount(CommunityConst.ENTITY_TYPE_COMMENT,post.getId());
                 map.put("likeCount",likeCount);
