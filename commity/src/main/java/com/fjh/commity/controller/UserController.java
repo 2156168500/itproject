@@ -2,8 +2,11 @@ package com.fjh.commity.controller;
 
 import com.fjh.commity.annotation.LoginRequired;
 import com.fjh.commity.entity.User;
+import com.fjh.commity.service.CommentService;
+import com.fjh.commity.service.FollowService;
 import com.fjh.commity.service.LikeService;
 import com.fjh.commity.service.UserService;
+import com.fjh.commity.util.CommunityConst;
 import com.fjh.commity.util.CommunityUtil;
 import com.fjh.commity.util.HostHolder;
 import org.apache.commons.lang3.StringUtils;
@@ -25,13 +28,15 @@ import java.io.IOException;
 
 @Controller
 @RequestMapping("/user")
-public class UserController  {
+public class UserController  implements CommunityConst {
     @Autowired
     private UserService userService;
     @Autowired
     private LikeService likeService;
     @Autowired
     private HostHolder hostHolder;
+    @Autowired
+    private FollowService followService;
     @Value("${community.path.domain}")
     private String domain;
     @Value("${server.servlet.context-path}")
@@ -149,6 +154,19 @@ public class UserController  {
         int likeUserCount = likeService.findLikeUserCount(user.getId());
         //装配获赞数
         model.addAttribute("likeUserCount",likeUserCount);
+
+        //获取当前用户关注的实体的数量
+        long followeeCount = followService.getFolloweeCount(userId,ENTITY_TYPE_USER);
+        model.addAttribute("followeeCount",followeeCount);
+        //获取当前实体的粉丝的数量
+        long followerCount = followService.getFollowerCount(ENTITY_TYPE_USER,userId);
+        model.addAttribute("followerCount",followerCount);
+        //当前用户是否已经关注该实体
+        boolean hasFollow = false;
+        if(hostHolder.getUser() != null){
+            hasFollow = followService.hasFollow(hostHolder.getUser().getId(),ENTITY_TYPE_USER,userId);
+        }
+        model.addAttribute("hasFollow", hasFollow);
         return "/site/profile";
     }
 }

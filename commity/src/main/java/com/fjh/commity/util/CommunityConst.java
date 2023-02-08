@@ -20,4 +20,8 @@ public interface CommunityConst {
      * 实体类型：回复
      */
     int ENTITY_TYPE_REPLAY = 2;
+    /**
+     * 实体类型：用户
+     */
+    int ENTITY_TYPE_USER = 3;
 }
