@@ -7,12 +7,15 @@ import com.fjh.commity.service.DiscussPostService;
 import com.fjh.commity.service.LikeService;
 import com.fjh.commity.service.UserService;
 import com.fjh.commity.util.CommunityConst;
+import com.fjh.commity.util.CommunityUtil;
 import com.fjh.commity.util.HostHolder;
+import com.fjh.commity.util.RedisKeyUtils;
 import com.google.code.kaptcha.Producer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +44,8 @@ public class LoginController implements CommunityConst {
     private Producer kaptchaProducer;
     @Autowired
     private HostHolder hostHolder;
+    @Autowired
+    private RedisTemplate redisTemplate;
     private final  static Logger logger = LoggerFactory.getLogger(LoginController.class);
     @RequestMapping(path = "/home", method = RequestMethod.GET)
     public String getDiscussPost(Model model, Page page){
@@ -112,7 +117,12 @@ public class LoginController implements CommunityConst {
     public void getKaptchaProducer(HttpServletResponse response, HttpSession session)  {
         String text = kaptchaProducer.createText();
         BufferedImage image = kaptchaProducer.createImage(text);
-        session.setAttribute("kaptcha",text);
+        //session.setAttribute("kaptcha",text);
+        String lib = CommunityUtil.getUUID().substring(0,5);
+        Cookie cookie = new Cookie("lib",lib);
+        response.addCookie(cookie);
+        String redisKey = RedisKeyUtils.getKaptchaKey(lib);
+        redisTemplate.opsForValue().set(redisKey,text);
         response.setContentType("image/png");
         response.setCharacterEncoding("utf-8");
         try {
@@ -124,14 +134,16 @@ public class LoginController implements CommunityConst {
     }
     @PostMapping("/login")
     public String login(String username,String password,String code,boolean rememberMe,
-                        Model model,HttpServletResponse response,HttpSession session
+                        Model model,HttpServletResponse response,@CookieValue("lib") String lib
                         ){
         if(StringUtils.isBlank(code)){
             model.addAttribute("codeMsg","验证码不能为空");
             return "/site/login";
         }
         //对验证码进行判断
-        String kaptcha = (String) session.getAttribute("kaptcha");
+       // String kaptcha = (String) session.getAttribute("kaptcha");
+        String redisKey = RedisKeyUtils.getKaptchaKey(lib);
+        String kaptcha = (String)redisTemplate.opsForValue().get(redisKey);
         if(!code.equalsIgnoreCase(kaptcha)){
             model.addAttribute("codeMsg","验证码错误");
             return "/site/login";

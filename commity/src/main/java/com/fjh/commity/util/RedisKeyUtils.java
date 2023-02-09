@@ -9,6 +9,7 @@ public class RedisKeyUtils {
     private static final String LIKE_USER="like:user";
     private static final String FOLLOWEE = "followee";
     private static final String FOLLOWER = "follower";
+    private static final String KAPTCHA = "kaptcha";
     public static String getLikeKey (int entityType,int entityId){
         return LIKE_ENTITY + CONNECT + entityType + CONNECT +entityId;
     }
@@ -31,5 +32,11 @@ public class RedisKeyUtils {
     public static String getFollowerKey(int entityType,int entityId){
         return FOLLOWER + CONNECT + entityType + CONNECT + entityId;
     }
+    /**
+     * 获取验证码的key
+     */
 
+    public static  String getKaptchaKey(String text){
+        return  KAPTCHA + CONNECT + text;
+    }
 }
