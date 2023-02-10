@@ -12,7 +12,7 @@
        where status = 0
        and  entity_type = #{entityType}
        and  entity_id = #{entityId}
-       order  by create_time asc
+       order  by create_time desc
        limit #{offset}, #{limit}
 
    </select>
@@ -30,4 +30,9 @@
         insert into comment (<include refid="insertTag"></include>)
         values (#{userId},#{entityType},#{entityId},#{targetId},#{content},#{status},#{createTime})
     </insert>
+    <select id="selectCommentById" resultType="comment">
+        select  <include refid="selectTag"></include>
+        from comment
+        where id = #{id}
+    </select>
 </mapper>
