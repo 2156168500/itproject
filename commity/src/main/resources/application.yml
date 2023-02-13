@@ -37,6 +37,10 @@ spring:
       group-id: test-consumer-group
       enable-auto-commit: true
       auto-commit-interval: 3000
+  data:
+    elasticsearch:
+      cluster-nodes: 127.0.0.1:9300
+      cluster-name: community
 mybatis:
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.fjh.commity.entity
@@ -52,3 +56,4 @@ community:
   path:
     domain: http://localhost:8080
     upload: D:\work\image
+
