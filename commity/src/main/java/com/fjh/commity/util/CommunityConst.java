@@ -37,7 +37,12 @@ public interface CommunityConst {
      */
     String TOPIC_FOLLOW = "follow";
     /**
+     * 主题：发布帖子
+     */
+    String TOPIC_PUSH_POST = "pushpost";
+    /**
      * 系统用户id
      */
+
     int SYSTEM_USER = 1;
 }

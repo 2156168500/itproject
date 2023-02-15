@@ -28,7 +28,7 @@
         </if>
     </select>
 <!--    //user_id, title, content, type, status, create_time, comment_count, score-->
-    <insert id="addDiscussPost" parameterType="discussPost">
+    <insert id="addDiscussPost" parameterType="discussPost" keyProperty="id">
         insert  into discuss_post(<include refid="insertTag"></include>)
         values (#{userId},#{title},#{content},#{type},#{status},#{createTime},#{commentCount},#{score})
     </insert>

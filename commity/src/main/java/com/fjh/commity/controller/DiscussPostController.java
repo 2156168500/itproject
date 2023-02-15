@@ -1,13 +1,8 @@
 package com.fjh.commity.controller;
 
-import com.fjh.commity.entity.Comment;
-import com.fjh.commity.entity.DiscussPost;
-import com.fjh.commity.entity.Page;
-import com.fjh.commity.entity.User;
-import com.fjh.commity.service.CommentService;
-import com.fjh.commity.service.DiscussPostService;
-import com.fjh.commity.service.LikeService;
-import com.fjh.commity.service.UserService;
+import com.fjh.commity.entity.*;
+import com.fjh.commity.event.EventProducer;
+import com.fjh.commity.service.*;
 import com.fjh.commity.util.CommunityConst;
 import com.fjh.commity.util.CommunityUtil;
 import com.fjh.commity.util.HostHolder;
@@ -34,6 +29,8 @@ public class DiscussPostController implements CommunityConst {
     @Autowired
     private LikeService likeService;
     @Autowired
+    private EventProducer eventProducer;
+    @Autowired
     private HostHolder hostHolder;
     private static final Logger logger = LoggerFactory.getLogger(DiscussPostController.class);
     @PostMapping("/add")
@@ -58,6 +55,15 @@ public class DiscussPostController implements CommunityConst {
         discussPost.setStatus(0);
         discussPost.setCommentCount(0);
         discussPostService.addDiscussPost(discussPost);
+
+        //添加事件
+        Event event = new Event()
+                .setTopic(TOPIC_PUSH_POST)
+                .setUserId(user.getId())
+                .setEntityType(ENTITY_TYPE_COMMENT)
+                .setEntityId(discussPost.getId());
+
+        eventProducer.producer(event);
         return CommunityUtil.getJsonString(0,"发布成功");
     }
     @GetMapping("/detail/{discussPostId}")

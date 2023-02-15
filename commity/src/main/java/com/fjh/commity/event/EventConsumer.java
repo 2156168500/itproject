@@ -1,8 +1,11 @@
 package com.fjh.commity.event;
 
 import com.alibaba.fastjson.JSONObject;
+import com.fjh.commity.entity.DiscussPost;
 import com.fjh.commity.entity.Event;
 import com.fjh.commity.entity.Message;
+import com.fjh.commity.service.DiscussPostService;
+import com.fjh.commity.service.ElasticsearchServer;
 import com.fjh.commity.service.MessageService;
 import com.fjh.commity.util.CommunityConst;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -22,7 +25,10 @@ public class EventConsumer implements CommunityConst {
     private final  static Logger logger = LoggerFactory.getLogger(EventConsumer.class);
     @Autowired
     private MessageService messageService;
-
+    @Autowired
+    private ElasticsearchServer elasticsearchServer;
+    @Autowired
+    private DiscussPostService discussPostService;
     @KafkaListener(topics = {TOPIC_COMMENT,TOPIC_LIKE,TOPIC_FOLLOW})
     public void consumer(ConsumerRecord record){
         if(record == null || record.value() == null){
@@ -53,7 +59,22 @@ public class EventConsumer implements CommunityConst {
         }
         message.setContent(JSONObject.toJSONString(map));
         messageService.addMessage(message);
-
-
+    }
+    @KafkaListener(topics = {TOPIC_PUSH_POST})
+    public void handlePostMessage(ConsumerRecord record){
+        if(record == null || record.value() == null){
+            logger.error("消息为空");
+            return ;
+        }
+        //将消息转化为事件对象
+        Event event = JSONObject.parseObject((String) record.value(),Event.class);
+        if(event == null){
+            logger.error("消息的格式错误");
+            return ;
+        }
+        DiscussPost discussPost = discussPostService.selectDiscussPostById(event.getEntityId());
+        if(discussPost != null){
+            elasticsearchServer.andPost(discussPost);
+        }
     }
 }
