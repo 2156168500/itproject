@@ -18,7 +18,8 @@ public class UserService {
         return userMapper.selectByName(userName);
     }
     public int insert(User user){
-      return   userMapper.insert(user);
+
+        return   userMapper.insert(user);
     }
 
 }
